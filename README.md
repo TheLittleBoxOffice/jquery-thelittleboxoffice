@@ -1,2 +1,2 @@
-JQueryPlugins
+lbo-jquery-plugins
 =============
