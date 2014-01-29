@@ -8,20 +8,14 @@
 		
 		var events = getEventsData(element);
 		var html = '<ul class="cs-style-3 grid">';
-
 		$(events).each(function(index, value) {
 			html += encodeEvent(value);
 		});
-
 		html += '</ul>';
-
 		element.html(html);
 	}
 
 	var encodeEvent = function(event) {
-		
-		console.log(event);
-
 		return	'<li>' +
 					'<figure class="lbo-eb-event">' + 
 						'<div class="crop"><img src="' + event.image_large + '"/></div>' +

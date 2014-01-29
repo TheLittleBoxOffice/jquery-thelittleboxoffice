@@ -2,3 +2,13 @@ body {
 	font-family: Helvetica;
 	font-size: 12px;
 }
+
+.column1 {
+	width: auto;
+	margin-right: 320px;
+}
+.column2 {
+	position: absolute;
+	right: 300px;
+	top: 78px;
+}
