@@ -1,2 +1,2 @@
-lbo-jquery-plugins
+jquery-thelittleboxoffice
 =============
