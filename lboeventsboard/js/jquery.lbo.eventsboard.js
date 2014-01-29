@@ -5,33 +5,49 @@
 	};
 	
 	var build = function(element) {	
-			
-		var data = getEventsData(element);
-		element.html('hello world');
+		
+		var events = getEventsData(element);
+		var html = '<ul class="cs-style-3 grid">';
+
+		$(events).each(function(index, value) {
+			html += encodeEvent(value);
+		});
+
+		html += '</ul>';
+
+		element.html(html);
 	}
 
+	var encodeEvent = function(event) {
+		
+		console.log(event);
+
+		return	'<li>' +
+					'<figure class="lbo-eb-event">' + 
+						'<div class="crop"><img src="' + event.image_large + '"/></div>' +
+						'<figcaption>' +
+							'<h3>' + event.title + '</h3>' +
+							'<span>' + event.teaser + '</span>' +
+							'<a href="' + event.link + '">Book Tickets</a>' +
+						'</figcaption>' +
+					'</figure>' +
+				'</li>';
+	}
 	var getEventsData = function(element) {
-
-		var client_id = getOption(element, 'client_id');
-		
-		
+		return lbo_events;		
 	}
-	
 	var setPosition = function(element, animate) {
 		
 
 	}
-	
 	var onClickHandler = function() {
 	
 		
 	}
-	
 	var getOption = function(inst, name) {
         var obj = $(inst).data("lboeventsboard");
         return (obj || defaults)[name];
     }
-	
 	var setOption = function(inst, name, value) {
         var obj = $(inst).data("lboeventsboard");
         if (!obj) {
@@ -40,7 +56,6 @@
         }
         obj[name] = value;
     }
-	
 	var methods = {
 	
 		init : function(options) {
