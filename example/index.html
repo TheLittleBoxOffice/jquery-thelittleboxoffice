@@ -11,14 +11,14 @@
 
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script src="http://firebox.dev/api/jsframework/source/8"></script>
-	<script src="../lboeventsboard/js/jquery.lbo.eventsboard.js"></script>
+	<script src="../js/jquery.lbo.components.js"></script>
 
 	<link rel="stylesheet" href="example.css">
-	<link rel="stylesheet" href="../lboeventsboard/css/jquery.lbo.eventsboard.css">
+	<link rel="stylesheet" href="../css/jquery.lbo.components.css">
 
 	<script>
 		$(function() {
-			$('.lboeventboard').lboeventsboard('init');
+			$('.lboeventboard').lboComponents({view_type: "list"});
 		});
 	</script>
 </head>
@@ -32,7 +32,6 @@
 	</div>
 	<div class="column2">
 		<div class="lbocalendar"></div>
-		sdfdsfdsfsd
 	</div>
 
 </body>
