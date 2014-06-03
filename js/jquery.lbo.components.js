@@ -174,7 +174,6 @@
 				}
 			},
 			viewList: function(event) {
-				
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
@@ -218,6 +217,11 @@
 					if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
 				}
 				return null;
+			},
+			hasSelectValue: function(select, value) {
+				$(select).find('option').each(function(index, value) {
+					
+				});
 			}
 		};
 
