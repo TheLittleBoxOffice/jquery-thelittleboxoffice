@@ -114,6 +114,11 @@
 	right: 5px;
 }
 
+/* events list */
+.lbo-events-list .lbo-event {
+	margin-bottom: 10px;
+}
+
 @media screen and (max-width: 31.5em) {
 	.grid {
 		padding: 10px 10px 100px 10px;

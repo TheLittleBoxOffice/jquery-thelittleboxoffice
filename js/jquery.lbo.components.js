@@ -24,7 +24,8 @@
 			defaults = {
 				client_id: 0,
 				view_type: "list",
-				categories: []
+				categories: [],
+				use_bootstrap: true
 			};
 
 		// The actual plugin constructor
@@ -166,14 +167,16 @@
 			encodeItem: function(plugin, element, settings, event) {
 				switch (settings.view_type) {
 					case "list":
-						return plugin.viewList(event);
+						return plugin.viewList(settings, event);
 						break;
 					case "grid":
-						return plugin.viewGrid(event);
+						return plugin.viewGrid(settings, event);
 						break;
 				}
 			},
-			viewList: function(event) {
+			viewList: function(settings, event) {
+				var button_class = (settings.use_bootstrap == true) ? "btn btn-primary" : "";
+				
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
@@ -182,12 +185,12 @@
 								'<figcaption>' +
 									'<h3>' + event.title + '</h3>' +
 									'<span>' + event.teaser + '</span>' +
-									'<a href="' + event.link + '">Book Tickets</a>' +
+									'<a class="' + button_class + '" href="' + event.link + '">Book Tickets</a>' +
 								'</figcaption>' +
 							'</figure>' +
 						'</li>';
 			},
-			viewGrid: function(event) {
+			viewGrid: function(settings, event) {
 				return	'<li>' +
 							'<figure class="lbo-eb-event">' + 
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
