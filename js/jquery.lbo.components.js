@@ -49,6 +49,8 @@
 				// you can add more functions like the one below and
 				// call them like so: this.yourOtherFunction(this.element, this.settings).
 				this.build(this, this.element, this.settings);
+				this.readSelectionFromCookies(this, this.element, this.settings);
+				this.filterSelect_Change(this, this.element, this.settings);
 			},
 			build: function(plugin, element, settings) {	
 
@@ -82,38 +84,82 @@
 			getCategoriesData: function() {
 				return lbo_categories;
 			},
+			getVenuesData: function() {
+				return lbo_venues;
+			},
 			filterSelect_Change: function(plugin, element, settings) {
 
-				var category_id = $(element).find('select.lbo-filter').val();
+				var category_id = $(element).find('select.lbo-filter-category').val();
 				var category_item_array = [];
+				var venue_id = $(element).find('select.lbo-filter-venue').val();
+				var venue_item_id = null;
 				var found = false;
 
 				$(element).find('.lbo-event').each(function(index, value) {
-					category_item_array = $(value).find('input.lbo-item-categories').val().split('==[]==');
+
 					found = false;
-					for (var x = 0; x < category_item_array.length; x++) {
-						if (category_item_array[x] == category_id) {
-							found = true;
+					category_item_array = $(value).find('input.lbo-item-categories').val().split('==[]==');
+					venue_item_id = $(value).find('input.lbo-item-venue').val();
+					
+					// category search
+					if (category_id != 0) {
+						for (var x = 0; x < category_item_array.length; x++) {
+							if (category_item_array[x] == category_id) {
+								found = true;
+							}
 						}
+					} else {
+						found = true;
 					}
+					
+					// venue search
+					if (found == true && venue_id != 0 && venue_item_id != venue_id) {
+						found = false;
+					}
+					
 					if (!found) {
 						$(value).css('display', 'none');
 					} else {
 						$(value).css('display', 'block');
 					}
+
 					found = false;
 				});
+
+				plugin.saveSelectionToCookies(plugin, element, settings);
+			},
+			saveSelectionToCookies: function(plugin, element, settings) {
+				var category_id = $(element).find('select.lbo-filter-category').val();
+				var venue_id = $(element).find('select.lbo-filter-venue').val();
+				plugin.setCookie("lbo_category_id", category_id, 7);
+				plugin.setCookie("lbo_venue_id", venue_id, 7);
+			},
+			readSelectionFromCookies: function(plugin, element, settings) {			
+				var category_id = (plugin.getCookie("lbo_category_id") == null) ? "0" : plugin.getCookie("lbo_category_id");
+				var venue_id = (plugin.getCookie("lbo_venue_id") == null) ? "0" : plugin.getCookie("lbo_venue_id");
+				$(element).find('select.lbo-filter-category').val(category_id);
+				$(element).find('select.lbo-filter-venue').val(venue_id);
 			},
 			encodeFilters: function(plugin, element, settings) {
 				
-				var select = $('<select class="lbo-filter"></select>').appendTo(element);
+				var categories_select = $('<select class="lbo-filter-category"></select>').appendTo(element);
 				var categories = plugin.getCategoriesData();
-				
-				for (var i = 0; i < categories.length; i++) {
-					$("<option />", {value: categories[i].id, text: categories[i].title}).appendTo(select);
-				}
 
-				select.change(function() {
+				var venues_select = $('<select class="lbo-filter-venue"></select>').appendTo(element);
+				var venues = plugin.getVenuesData();
+		
+				$("<option />", {value: 0, text: "All Categories"}).appendTo(categories_select);
+				for (var i = 0; i < categories.length; i++) {
+					$("<option />", {value: categories[i].id, text: categories[i].title}).appendTo(categories_select);
+				}
+				$("<option />", {value: 0, text: "All Venues"}).appendTo(venues_select);
+				for (i = 0; i < venues.length; i++) {
+					$("<option />", {value: venues[i].id, text: venues[i].title}).appendTo(venues_select);
+				}
+				categories_select.change(function() {
+					plugin.filterSelect_Change(plugin, element, settings);
+				});		
+				venues_select.change(function() {
 					plugin.filterSelect_Change(plugin, element, settings);
 				});				
 			},
@@ -123,16 +169,17 @@
 						return plugin.viewList(event);
 						break;
 					case "grid":
-						return plugin.viewEvent(event);
+						return plugin.viewGrid(event);
 						break;
 				}
 			},
 			viewList: function(event) {
 				
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
-							'<figure>' + 
+							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
 								'<input type="hidden" class="lbo-item-categories" value="' + event.categories.join('==[]==') + '"/>' +
+								'<input type="hidden" class="lbo-item-venue" value="' + event.venue_id + '"/>' +
 								'<figcaption>' +
 									'<h3>' + event.title + '</h3>' +
 									'<span>' + event.teaser + '</span>' +
@@ -141,7 +188,7 @@
 							'</figure>' +
 						'</li>';
 			},
-			viewEvent: function(event) {
+			viewGrid: function(event) {
 				return	'<li>' +
 							'<figure class="lbo-eb-event">' + 
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
@@ -152,6 +199,25 @@
 								'</figcaption>' +
 							'</figure>' +
 						'</li>';
+			},
+			setCookie: function(name,value,days) {
+				if (days) {
+					var date = new Date();
+					date.setTime(date.getTime()+(days*24*60*60*1000));
+					var expires = "; expires="+date.toGMTString();
+				}
+				else var expires = "";
+				document.cookie = name+"="+value+expires+"; path=/";
+			},
+			getCookie: function(name) {
+				var nameEQ = name + "=";
+				var ca = document.cookie.split(';');
+				for(var i=0;i < ca.length;i++) {
+					var c = ca[i];
+					while (c.charAt(0)==' ') c = c.substring(1,c.length);
+					if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+				}
+				return null;
 			}
 		};
 
@@ -169,140 +235,3 @@
 		};
 
 })( jQuery, window, document );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-(function( $ ){
-
-	var defaults = {
-	    client_id: 0,
-	    view_type: "list"
-	};
-	
-	var build = function(element) {	
-		
-		var events = getEventsData(element);
-		var view_type = getOption(this, view_type);
-		var html = '<ul class="' + getWrapperClasses() + '">';
-		console.log(view_type);
-		$(events).each(function(index, value) {
-			encodeItem(view_type, value);
-		});
-
-		html += '</ul>';
-		element.html(html);
-	}
-
-	var getWrapperClasses = function(view_type) {
-		switch (view_type) {
-			case "list":
-				return '';
-				break;
-			case "grid":
-				return 'cs-style-3 grid';
-				break;
-		}
-	}
-
-	var encodeItem = function(view_type, event) {
-		switch (view_type) {
-			case "list":
-				return viewFilter(event);
-				break;
-			case "grid":
-				return viewEvent(event);
-				break;
-		}
-	}
-
-	var viewFilter = function(event) {
-		return	'<li>' +
-					'<figure class="lbo-eb-event">' + 
-						'<div class="crop"><img src="' + event.image_large + '"/></div>' +
-						'<figcaption>' +
-							'<h3>' + event.title + '</h3>' +
-							'<span>' + event.teaser + '</span>' +
-							'<a href="' + event.link + '">Book Tickets</a>' +
-						'</figcaption>' +
-					'</figure>' +
-				'</li>';
-	}
-
-	var viewEvent = function(event) {
-		return	'<li>' +
-					'<figure class="lbo-eb-event">' + 
-						'<div class="crop"><img src="' + event.image_large + '"/></div>' +
-						'<figcaption>' +
-							'<h3>' + event.title + '</h3>' +
-							'<span>' + event.teaser + '</span>' +
-							'<a href="' + event.link + '">Book Tickets</a>' +
-						'</figcaption>' +
-					'</figure>' +
-				'</li>';
-	}
-	var getEventsData = function(element) {
-		return lbo_events;		
-	}
-	var setPosition = function(element, animate) {
-		
-	}
-	var onClickHandler = function() {
-				
-	}
-	var getOption = function(inst, name) {
-        var obj = $(inst).data("lbocomponents");
-        return (obj || defaults)[name];
-    }
-	var setOption = function(inst, name, value) {
-        var obj = $(inst).data("lbocomponents");
-        if (!obj) {
-            obj = $.extend({}, defaults);
-            inst.data("lbocomponents", obj);
-        }
-        obj[name] = value;
-    }
-	var methods = {
-	
-		init : function(options) {
-			
-			// mix options with defaults and save
-			var settings = $.extend( true, {}, defaults, options );
-			this.data("lbocomponents", settings);
-			
-			// build the elements
-			build(this);
-						
-		},
-		click : function(callback) {
-			setOption(this, 'click_callback', callback);
-		},
-		complete : function(callback) {
-			setOption(this, 'complete_callback', callback);
-		}
-	};
-	
-	jQuery.fn.lbocomponents = function(method) {
-		
-		if ( methods[method] ) {
-			return methods[method].apply( this, Array.prototype.slice.call( arguments, 1 ));
-		} else if ( typeof method === 'object' || ! method ) {
-			return methods.init.apply( this, arguments );
-		} else {
-			$.error( 'Method ' +  method + ' does not exist on jQuery.lbo.eventsboard' );
-		}
-	}
-	
-})( jQuery );
-*/
