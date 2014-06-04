@@ -25,7 +25,8 @@
 				client_id: 0,
 				view_type: "list",
 				categories: [],
-				use_bootstrap: false
+				use_bootstrap: false,
+				use_social_likes: true,
 			};
 
 		// The actual plugin constructor
@@ -67,6 +68,8 @@
 				html += '</ul>';
 
 				$(element).append(html);
+
+				$('.social-likes').socialLikes();
 			},
 			getWrapperClasses: function(element, settings) {
 
@@ -164,29 +167,48 @@
 					plugin.filterSelect_Change(plugin, element, settings);
 				});				
 			},
+			encodeSocialLikes: function(plugin, element, settings, event) {
+				var out = "";
+				if (settings.use_social_likes == true) {
+					out = plugin.viewSocialLike(plugin, element, settings, event);
+				}
+				return out;
+			},
 			encodeItem: function(plugin, element, settings, event) {
 				switch (settings.view_type) {
 					case "list":
-						return plugin.viewList(settings, event);
+						return plugin.viewList(plugin, element, settings, event);
 						break;
 					case "grid":
-						return plugin.viewGrid(settings, event);
+						return plugin.viewGrid(plugin, element, settings, event);
 						break;
 				}
 			},
-			viewList: function(settings, event) {
-				var button_class = (settings.use_bootstrap == true) ? "btn btn-primary" : "";
-				
+			viewSocialLike: function(plugin, element, settings, event) {
+				return '' + 
+					'<div class="social-likes" data-counters="no" data-url="' + event.link + '" data-title="' + event.title + '">' +
+						'<div class="facebook" title="Share link on Facebook">Facebook</div>' +
+						'<div class="twitter" title="Share link on Twitter">Twitter</div>' +
+						'<div class="plusone" title="Share link on Google+">Google+</div>' +
+						'<div class="pinterest" title="Share image on Pinterest" data-media="' + event.image_large + '">Pinterest</div>' +
+					'</div>';
+			},
+			viewList: function(plugin, element, settings, event) {
+				var button_class = (settings.use_bootstrap == true) ? "lbo-event-book btn btn-primary" : "lbo-event-book";
+				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
 								'<input type="hidden" class="lbo-item-categories" value="' + event.categories.join('==[]==') + '"/>' +
 								'<input type="hidden" class="lbo-item-venue" value="' + event.venue_id + '"/>' +
 								'<figcaption>' +
-									'<h3>' + event.title + '</h3>' +
-									'<span>' + event.teaser + '</span>' +
-									'<a class="' + button_class + '" href="' + event.link + '">Book Tickets</a>' +
+									'<h3><a href="' + event.link_view + '">' + event.title + '</a></h3>' +
+									'<div class="lbo-event-teaser">' + event.teaser + '</div>' +
 								'</figcaption>' +
+								'<div class="lbo-event-footer">' + 
+									social_likes + 
+									'<a class="' + button_class + '" href="' + event.link_book + '">Book Tickets</a>' +
+								'</div>' +
 							'</figure>' +
 						'</li>';
 			},
@@ -197,7 +219,7 @@
 								'<figcaption>' +
 									'<h3>' + event.title + '</h3>' +
 									'<span>' + event.teaser + '</span>' +
-									'<a href="' + event.link + '">Book Tickets</a>' +
+									'<a href="' + event.link_book + '">Book Tickets</a>' +
 								'</figcaption>' +
 							'</figure>' +
 						'</li>';

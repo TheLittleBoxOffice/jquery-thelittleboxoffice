@@ -115,9 +115,29 @@
 }
 
 /* events list */
-.lbo-events-list .lbo-event {
-	margin: 10px 0px;
+.lbo-events-list { padding:0px; }
+.lbo-events-list .lbo-event { margin: 10px 0px; }
+.lbo-events-list .lbo-event figure {
+	border-radius: 7px;
+	border: 1px solid #e6e6e6;
+	background-color: #ffffff;
+	overflow: hidden;
+	position: relative;
+	padding-bottom: 55px;
 }
+.lbo-events-list .lbo-event .lbo-event-teaser { padding:5px; }
+.lbo-events-list .lbo-event .lbo-event-footer { 
+	padding: 10px;
+	background-color: #f6f6f6;
+	border-top: 1px solid #e6e6e6;
+	position: absolute;
+	bottom: 0px;
+	width: 100%;
+}
+.lbo-events-list .lbo-event .crop { width: 200px; float: left; }
+.lbo-events-list .lbo-event .crop img { width: 200px; }
+.lbo-events-list .lbo-event figcaption { margin-left: 210px; }
+.lbo-events-list .lbo-event .lbo-event-book { float: right; }
 
 @media screen and (max-width: 31.5em) {
 	.grid {
