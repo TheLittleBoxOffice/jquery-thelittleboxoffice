@@ -25,7 +25,7 @@
 				client_id: 0,
 				view_type: "list",
 				categories: [],
-				use_bootstrap: true
+				use_bootstrap: false
 			};
 
 		// The actual plugin constructor
