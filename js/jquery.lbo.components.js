@@ -62,8 +62,8 @@
 				plugin.encodeFilters(plugin, element, settings);
 
 				html += '<ul class="' + this.getWrapperClasses(element, settings) + '">';
-				$(events).each(function(index, value) {
-					html += plugin.encodeItem(plugin, element, settings, value);
+				$(events).each(function(index, event) {
+					html += plugin.encodeItem(plugin, element, settings, event);
 				});
 				html += '</ul>';
 
@@ -196,6 +196,10 @@
 			viewList: function(plugin, element, settings, event) {
 				var button_class = (settings.use_bootstrap == true) ? "lbo-event-book btn btn-primary" : "lbo-event-book";
 				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
+				var performances_code = "";
+				$(event.performances).each(function(index, performance) {
+					performances_code += performance->start_date + " " + performance->start_time;
+				});
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
