@@ -71,6 +71,7 @@
 
 				$('.social-likes').socialLikes();
 			},
+			
 			getWrapperClasses: function(element, settings) {
 
 				switch (settings.view_type) {
@@ -117,7 +118,8 @@
 					}
 					
 					// venue search
-					if (found == true && venue_id != 0 && venue_item_id != venue_id) {
+					console.log(venue_id, venue_item_id);
+					if (venue_id != 0 && venue_item_id != venue_id) {
 						found = false;
 					}
 					
@@ -151,7 +153,27 @@
 
 				var venues_select = $('<select class="lbo-filter-venue"></select>').appendTo(element);
 				var venues = plugin.getVenuesData();
-		
+
+				var months_select = $('<select class="lbo-filter-month"></select>').appendTo(element);
+				var months = new Array();
+				
+				months[0] = "January";
+				months[1] = "February";
+				months[2] = "March";
+				months[3] = "April";
+				months[4] = "May";
+				months[5] = "June";
+				months[6] = "July";
+				months[7] = "August";
+				months[8] = "September";
+				months[9] = "October";
+				months[10] = "November";
+				months[11] = "December";
+				
+				$("<option />", {value: 0, text: "All Months"}).appendTo(months_select);
+				for (var i = 0; i < months.length; i++) {
+					$("<option />", {value: i, text: months[i]}).appendTo(months_select);
+				}
 				$("<option />", {value: 0, text: "All Categories"}).appendTo(categories_select);
 				for (var i = 0; i < categories.length; i++) {
 					$("<option />", {value: categories[i].id, text: categories[i].title}).appendTo(categories_select);
@@ -166,6 +188,9 @@
 				venues_select.change(function() {
 					plugin.filterSelect_Change(plugin, element, settings);
 				});				
+				months_select.change(function() {
+					plugin.filterSelect_Change(plugin, element, settings);
+				});
 			},
 			encodeSocialLikes: function(plugin, element, settings, event) {
 				var out = "";
@@ -197,14 +222,14 @@
 				var button_class = (settings.use_bootstrap == true) ? "lbo-event-book btn btn-primary" : "lbo-event-book";
 				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
 				var performances_code = "";
+				var pdate = null;
+				var fulldate = '';
 				$(event.performances).each(function(index, performance) {
-					performances_code += '<div>' + performance.start_date + " " + performance.start_time + '</div>';
+					performances_code += '<div class="lbo-performance" data-raw="' + performance.start_date + " " + performance.start_time + '">' + '' + '</div>';
 				});
-				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
+				return	'<li class="lbo-event lbo-event-' + event.id + '" data-item-categories="' + event.categories.join('==[]==') + '" data-item-venue="' + event.venue_id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
-								'<input type="hidden" class="lbo-item-categories" value="' + event.categories.join('==[]==') + '"/>' +
-								'<input type="hidden" class="lbo-item-venue" value="' + event.venue_id + '"/>' +
 								'<figcaption>' +
 									'<h3><a href="' + event.link_view + '">' + event.title + '</a></h3>' +
 									'<div class="lbo-event-teaser">' + event.teaser + '</div>' +
