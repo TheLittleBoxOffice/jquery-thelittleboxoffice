@@ -198,7 +198,7 @@
 				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
 				var performances_code = "";
 				$(event.performances).each(function(index, performance) {
-					performances_code += performance->start_date + " " + performance->start_time;
+					performances_code += '<div>' + performance.start_date + " " + performance.start_time + '</div>';
 				});
 				return	'<li class="lbo-event lbo-event-' + event.id + '">' +
 							'<figure>' +
@@ -209,8 +209,12 @@
 									'<h3><a href="' + event.link_view + '">' + event.title + '</a></h3>' +
 									'<div class="lbo-event-teaser">' + event.teaser + '</div>' +
 								'</figcaption>' +
+								'<div class="performances">' +
+									performances_code +
+								'</div>' +
 								'<div class="lbo-event-footer">' + 
 									social_likes + 
+									'<a class="btn btn-performances" href="#">Performances</a>' +
 									'<a class="' + button_class + '" href="' + event.link_book + '">Book Tickets</a>' +
 								'</div>' +
 							'</figure>' +
