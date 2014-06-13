@@ -54,33 +54,50 @@
 				this.readSelectionFromCookies(this, this.element, this.settings);
 				this.filterSelect_Change(this, this.element, this.settings);
 			},
-			build: function(plugin, element, settings) {	
-
-				var html = '';
-				var events = this.getEventsData();
+			build: function(plugin, element, settings) {				
+				var html = "";
 
 				plugin.encodeFilters(plugin, element, settings);
+								
+				switch (settings.view_type) {
+					case "list":
+						html = plugin.buildList(plugin, element, settings);
+						break;
+					case "calendar-bar":
+						html = plugin.buildCalendar(plugin, element, settings);
+						break;
+				}
 
-				html += '<ul class="' + this.getWrapperClasses(element, settings) + '">';
+				$(element).append(html);
+				$('.social-likes').socialLikes();
+			},
+			buildList: function(plugin, element, settings) {
+				var html = '';
+				var events = this.getEventsData();
+				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				$(events).each(function(index, event) {
 					html += plugin.encodeItem(plugin, element, settings, event);
 				});
 				html += '</ul>';
-
-				$(element).append(html);
-
-				$('.social-likes').socialLikes();
+				return html;
 			},
-			
-			getWrapperClasses: function(element, settings) {
+			buildCalendar: function(plugin, element, settings) {
+				var html = '';
+				var performance_dates = this.getPerformancesByDateData(plugin, element, settings);
+				
+				html += '<div class="lbo-vertical-line"></div><ul class="' + plugin.getWrapperClasses(element, settings) + '">';
+				for (var performance_date in performance_dates) {
+					html += plugin.viewCalendar(plugin, element, settings, performance_dates[performance_date]);
+				};
+				html += '</ul>';
 
+				return html;
+			},
+			getWrapperClasses: function(element, settings) {
 				switch (settings.view_type) {
-					case "list":
-						return 'lbo-events-list';
-						break;
-					case "grid":
-						return 'lbo-events-grid cs-style-3 grid';
-						break;
+					case "list": return 'lbo-events-list';
+					case "grid": return 'lbo-events-grid cs-style-3 grid';
+					case "calendar-bar": return 'lbo-calendar-bar';
 				}
 			},
 			getEventsData: function() {
@@ -92,6 +109,24 @@
 			getVenuesData: function() {
 				return lbo_venues;
 			},
+			getPerformancesByDateData: function(plugin, element, settings) {
+				var events = plugin.getEventsData();
+				var performances_sorted = [];
+				var day_index = null , time_index = null; 
+				$(events).each(function(index, event) {
+					$(event.performances).each(function(index, performance) {
+						day_index = performance.start_date.replace(/-/gi, "");
+						time_index = day_index.concat(performance.start_time.replace(/:/gi, ""));
+						performance_index = time_index.concat(performance.id);
+						if (performances_sorted[day_index] == undefined) {
+							performances_sorted[time_index] = [];
+							performance.event = event;
+							performances_sorted[time_index][performance_index] = performance;
+						}
+					});
+				});
+				return performances_sorted;
+			},
 			filterSelect_Change: function(plugin, element, settings) {
 
 				var category_id = $(element).find('select.lbo-filter-category').val();
@@ -102,34 +137,34 @@
 
 				$(element).find('.lbo-event').each(function(index, value) {
 
-					found = false;
-					category_item_array = $(value).find('input.lbo-item-categories').val().split('==[]==');
-					venue_item_id = $(value).find('input.lbo-item-venue').val();
+					// found = false;
+					// category_item_array = $(value).find('input.lbo-item-categories').val().split('==[]==');
+					// venue_item_id = $(value).find('input.lbo-item-venue').val();
 					
-					// category search
-					if (category_id != 0) {
-						for (var x = 0; x < category_item_array.length; x++) {
-							if (category_item_array[x] == category_id) {
-								found = true;
-							}
-						}
-					} else {
-						found = true;
-					}
+					// // category search
+					// if (category_id != 0) {
+					// 	for (var x = 0; x < category_item_array.length; x++) {
+					// 		if (category_item_array[x] == category_id) {
+					// 			found = true;
+					// 		}
+					// 	}
+					// } else {
+					// 	found = true;
+					// }
 					
-					// venue search
-					console.log(venue_id, venue_item_id);
-					if (venue_id != 0 && venue_item_id != venue_id) {
-						found = false;
-					}
+					// // venue search
+					// console.log(venue_id, venue_item_id);
+					// if (venue_id != 0 && venue_item_id != venue_id) {
+					// 	found = false;
+					// }
 					
-					if (!found) {
-						$(value).css('display', 'none');
-					} else {
-						$(value).css('display', 'block');
-					}
+					// if (!found) {
+					// 	$(value).css('display', 'none');
+					// } else {
+					// 	$(value).css('display', 'block');
+					// }
 
-					found = false;
+					// found = false;
 				});
 
 				plugin.saveSelectionToCookies(plugin, element, settings);
@@ -147,7 +182,20 @@
 				$(element).find('select.lbo-filter-venue').val(venue_id);
 			},
 			encodeFilters: function(plugin, element, settings) {
-				
+				switch (settings.view_type) {
+					case "list":
+						return plugin.encodeFiltersList(plugin, element, settings);
+						break;
+					case "calendar-bar":
+						return plugin.encodeFiltersCalendarBar(plugin, element, settings);
+						break;
+				}
+			},
+			encodeFiltersCalendarBar: function(plugin, element, settings) {
+
+			},
+			encodeFiltersList: function(plugin, element, settings) {
+
 				var categories_select = $('<select class="lbo-filter-category"></select>').appendTo(element);
 				var categories = plugin.getCategoriesData();
 
@@ -218,6 +266,26 @@
 						'<div class="pinterest" title="Share image on Pinterest" data-media="' + event.image_large + '">Pinterest</div>' +
 					'</div>';
 			},
+			viewCalendar: function(plugin, element, settings, performance_dates) {
+				var html_main = '<div class="lbo-performance-date">';
+				var html_performances = '';
+				var html_date = '';
+
+				for (var performance_date in performance_dates) {
+					html_date = performance_dates[performance_date].start_date;
+					html_performances += 
+						'<div class="lbo-perfromance-date-item">' + 
+							performance_dates[performance_date].start_time + 
+							' ' + performance_dates[performance_date].event.title + 
+						'</div>';
+				}
+				console.log(plugin.formatDate(html_date));
+				html_main += '<div class="lbo-date-header">' + html_date + '</div>';
+				html_main += '<div class="lbo-perfromance-date-items">' + html_performances + '</div>';
+				html_main += '</div>';
+
+				return html_main;
+			},
 			viewList: function(plugin, element, settings, event) {
 				var button_class = (settings.use_bootstrap == true) ? "lbo-event-book btn btn-primary" : "lbo-event-book";
 				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
@@ -256,6 +324,11 @@
 								'</figcaption>' +
 							'</figure>' +
 						'</li>';
+			},
+			/* utiliy functions */
+			formatDate: function(str_date) {
+				var d = new Date(str_date);
+				console.log(d.getMonth());
 			},
 			setCookie: function(name,value,days) {
 				if (days) {
