@@ -143,12 +143,11 @@
 .lbo-calendar-bar {
 	text-align: center;
 	padding:0px;
-	
 }
 	.lbo-calendar-bar .lbo-date-header {
 		border-radius: 5px;
 		padding: 3px;
-		font-size:10px;
+		font-size:12px;
 		background-color:#3276b1;
 		display: inline;
 		margin: 0 auto;
@@ -166,11 +165,17 @@
 		text-align: left;
 		z-index: 10;
 		position: relative;
-		padding: 4px;
+		padding: 7px;
+		border-bottom: 2px solid rgb(213, 213, 213);
+	}
+	.lbo-calendar-bar .lbo-performance-date {
+		margin-bottom: 20px;
+	}
+	.lbo-calendar-bar .lbo-perfromance-date-item {
 	}
 .lbo-vertical-line{
 	height: 1000px;
-	background-color: #A4BFD6;
+	background-color: #CBD8E2;
 	width: 3px;
 	float: left;
 	z-index: 0;

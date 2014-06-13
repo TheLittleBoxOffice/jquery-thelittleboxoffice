@@ -93,6 +93,7 @@
 
 				return html;
 			},
+			/* data functions */
 			getWrapperClasses: function(element, settings) {
 				switch (settings.view_type) {
 					case "list": return 'lbo-events-list';
@@ -118,15 +119,17 @@
 						day_index = performance.start_date.replace(/-/gi, "");
 						time_index = day_index.concat(performance.start_time.replace(/:/gi, ""));
 						performance_index = time_index.concat(performance.id);
+						
 						if (performances_sorted[day_index] == undefined) {
-							performances_sorted[time_index] = [];
-							performance.event = event;
-							performances_sorted[time_index][performance_index] = performance;
-						}
+							performances_sorted[day_index] = [];
+						} 
+						performance.event = event;
+						performances_sorted[day_index][performance_index] = performance;
 					});
 				});
 				return performances_sorted;
 			},
+			/* events */
 			filterSelect_Change: function(plugin, element, settings) {
 
 				var category_id = $(element).find('select.lbo-filter-category').val();
@@ -257,6 +260,7 @@
 						break;
 				}
 			},
+			/* views */
 			viewSocialLike: function(plugin, element, settings, event) {
 				return '' + 
 					'<div class="social-likes" data-counters="no" data-url="' + event.link + '" data-title="' + event.title + '">' +
@@ -275,12 +279,12 @@
 					html_date = performance_dates[performance_date].start_date;
 					html_performances += 
 						'<div class="lbo-perfromance-date-item">' + 
-							performance_dates[performance_date].start_time + 
+							plugin.formatTime(performance_dates[performance_date].start_time) + 
 							' ' + performance_dates[performance_date].event.title + 
 						'</div>';
 				}
-				console.log(plugin.formatDate(html_date));
-				html_main += '<div class="lbo-date-header">' + html_date + '</div>';
+				
+				html_main += '<div class="lbo-date-header">' + plugin.formatDate(plugin, html_date) + '</div>';
 				html_main += '<div class="lbo-perfromance-date-items">' + html_performances + '</div>';
 				html_main += '</div>';
 
@@ -326,9 +330,42 @@
 						'</li>';
 			},
 			/* utiliy functions */
-			formatDate: function(str_date) {
+			formatDate: function(plugin, str_date) {
+				var date_parts = str_date.split('-');
+				var day = plugin.getStringDay(str_date);
+				return day + ' ' + date_parts[2] + ' ' + plugin.getStringMonth(str_date) + ' ' + date_parts[0];
+			},
+			formatTime: function(str_time) {
+				return str_time.substr(0, str_time.lastIndexOf(':'));
+			},	
+			getStringDay: function(str_date) {
 				var d = new Date(str_date);
-				console.log(d.getMonth());
+				var weekday = new Array(7);
+				weekday[0]=  "Sunday";
+				weekday[1] = "Monday";
+				weekday[2] = "Tuesday";
+				weekday[3] = "Wednesday";
+				weekday[4] = "Thursday";
+				weekday[5] = "Friday";
+				weekday[6] = "Saturday";
+				return weekday[d.getDay()];
+			},
+			getStringMonth: function(str_date) {
+				var d = new Date(str_date);
+				var month = new Array();
+				month[0] = "January";
+				month[1] = "February";
+				month[2] = "March";
+				month[3] = "April";
+				month[4] = "May";
+				month[5] = "June";
+				month[6] = "July";
+				month[7] = "August";
+				month[8] = "September";
+				month[9] = "October";
+				month[10] = "November";
+				month[11] = "December";
+				return month[d.getMonth()];
 			},
 			setCookie: function(name,value,days) {
 				if (days) {
