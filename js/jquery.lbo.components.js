@@ -84,12 +84,15 @@
 			buildCalendar: function(plugin, element, settings) {
 				var html = '';
 				var performance_dates = this.getPerformancesByDateData(plugin, element, settings);
-				
-				html += '<div class="lbo-vertical-line"></div><ul class="' + plugin.getWrapperClasses(element, settings) + '">';
+				var html_calendar_button = '<button type="button" class="btn btn-primary">Calendar</button>';
+
+				html += '<div class="lbo-calendar-wrapper"><div class="lbo-vertical-line"></div>';
+				html += html_calendar_button;
+				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				for (var performance_date in performance_dates) {
 					html += plugin.viewCalendar(plugin, element, settings, performance_dates[performance_date]);
 				};
-				html += '</ul>';
+				html += '</ul></div>';
 
 				return html;
 			},

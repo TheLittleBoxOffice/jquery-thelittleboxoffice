@@ -140,6 +140,10 @@
 .lbo-events-list .lbo-event .lbo-event-book { float: right; }
 
 /* calendar bar */
+.lbo-calendar-wrapper {
+	height: 300px;
+	overflow-y:auto;
+}
 .lbo-calendar-bar {
 	text-align: center;
 	padding:0px;
