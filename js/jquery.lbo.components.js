@@ -56,20 +56,18 @@
 			},
 			build: function(plugin, element, settings) {				
 				var html = "";
-
-				plugin.encodeFilters(plugin, element, settings);
-								
+				plugin.encodeFilters(plugin, element, settings);				
 				switch (settings.view_type) {
 					case "list":
-						html = plugin.buildList(plugin, element, settings);
+						$(element).append(plugin.buildList(plugin, element, settings));
+						$('.lbo-social-likes').socialLikes();		
 						break;
 					case "calendar-bar":
-						html = plugin.buildCalendar(plugin, element, settings);
+						$(element).append(plugin.buildCalendar(plugin, element, settings));
+						$('.lbo-datepicker').datepicker();
+						console.log($('.lbo-datepicker'));
 						break;
 				}
-
-				$(element).append(html);
-				$('.social-likes').socialLikes();
 			},
 			buildList: function(plugin, element, settings) {
 				var html = '';
@@ -84,7 +82,7 @@
 			buildCalendar: function(plugin, element, settings) {
 				var html = '';
 				var performance_dates = this.getPerformancesByDateData(plugin, element, settings);
-				var html_calendar_button = '<button type="button" class="btn btn-primary">Calendar</button>';
+				var html_calendar_button = '<div class="lbo-datepicker"></div>';
 
 				html += '<div class="lbo-calendar-wrapper"><div class="lbo-vertical-line"></div>';
 				html += html_calendar_button;
@@ -135,42 +133,43 @@
 			/* events */
 			filterSelect_Change: function(plugin, element, settings) {
 
-				var category_id = $(element).find('select.lbo-filter-category').val();
+				var selected_category_id = $(element).find('select.lbo-filter-category').val();
+				var selected_venue_id = $(element).find('select.lbo-filter-venue').val();
+
 				var category_item_array = [];
-				var venue_id = $(element).find('select.lbo-filter-venue').val();
 				var venue_item_id = null;
 				var found = false;
 
 				$(element).find('.lbo-event').each(function(index, value) {
 
-					// found = false;
-					// category_item_array = $(value).find('input.lbo-item-categories').val().split('==[]==');
-					// venue_item_id = $(value).find('input.lbo-item-venue').val();
-					
-					// // category search
-					// if (category_id != 0) {
-					// 	for (var x = 0; x < category_item_array.length; x++) {
-					// 		if (category_item_array[x] == category_id) {
-					// 			found = true;
-					// 		}
-					// 	}
-					// } else {
-					// 	found = true;
-					// }
-					
-					// // venue search
-					// console.log(venue_id, venue_item_id);
-					// if (venue_id != 0 && venue_item_id != venue_id) {
-					// 	found = false;
-					// }
-					
-					// if (!found) {
-					// 	$(value).css('display', 'none');
-					// } else {
-					// 	$(value).css('display', 'block');
-					// }
+					found = false;
 
-					// found = false;
+					category_item_array = String($(value).data('item-categories')).split('==[]==');
+					venue_item_id = $(value).data('item-venue');
+					
+					// category search
+					if (selected_category_id != 0) {
+						for (var x = 0; x < category_item_array.length; x++) {
+							if (category_item_array[x] == selected_category_id) {
+								found = true;
+							}
+						}
+					} else {
+						found = true;
+					}
+					
+					// venue search
+					if (selected_venue_id != 0 && venue_item_id != selected_venue_id) {
+						found = false;
+					}
+					
+					if (!found) {
+						$(value).css('display', 'none');
+					} else {
+						$(value).css('display', 'block');
+					}
+
+					found = false;
 				});
 
 				plugin.saveSelectionToCookies(plugin, element, settings);
@@ -208,26 +207,26 @@
 				var venues_select = $('<select class="lbo-filter-venue"></select>').appendTo(element);
 				var venues = plugin.getVenuesData();
 
-				var months_select = $('<select class="lbo-filter-month"></select>').appendTo(element);
-				var months = new Array();
+				// var months_select = $('<select class="lbo-filter-month"></select>').appendTo(element);
+				// var months = new Array();
 				
-				months[0] = "January";
-				months[1] = "February";
-				months[2] = "March";
-				months[3] = "April";
-				months[4] = "May";
-				months[5] = "June";
-				months[6] = "July";
-				months[7] = "August";
-				months[8] = "September";
-				months[9] = "October";
-				months[10] = "November";
-				months[11] = "December";
+				// months[0] = "January";
+				// months[1] = "February";
+				// months[2] = "March";
+				// months[3] = "April";
+				// months[4] = "May";
+				// months[5] = "June";
+				// months[6] = "July";
+				// months[7] = "August";
+				// months[8] = "September";
+				// months[9] = "October";
+				// months[10] = "November";
+				// months[11] = "December";
 				
-				$("<option />", {value: 0, text: "All Months"}).appendTo(months_select);
-				for (var i = 0; i < months.length; i++) {
-					$("<option />", {value: i, text: months[i]}).appendTo(months_select);
-				}
+				// $("<option />", {value: 0, text: "All Months"}).appendTo(months_select);
+				// for (var i = 0; i < months.length; i++) {
+				// 	$("<option />", {value: i, text: months[i]}).appendTo(months_select);
+				// }
 				$("<option />", {value: 0, text: "All Categories"}).appendTo(categories_select);
 				for (var i = 0; i < categories.length; i++) {
 					$("<option />", {value: categories[i].id, text: categories[i].title}).appendTo(categories_select);
@@ -242,9 +241,9 @@
 				venues_select.change(function() {
 					plugin.filterSelect_Change(plugin, element, settings);
 				});				
-				months_select.change(function() {
-					plugin.filterSelect_Change(plugin, element, settings);
-				});
+				// months_select.change(function() {
+				// 	plugin.filterSelect_Change(plugin, element, settings);
+				// });
 			},
 			encodeSocialLikes: function(plugin, element, settings, event) {
 				var out = "";
@@ -266,7 +265,7 @@
 			/* views */
 			viewSocialLike: function(plugin, element, settings, event) {
 				return '' + 
-					'<div class="social-likes" data-counters="no" data-url="' + event.link + '" data-title="' + event.title + '">' +
+					'<div class="lbo-social-likes" data-counters="no" data-url="' + event.link + '" data-title="' + event.title + '">' +
 						'<div class="facebook" title="Share link on Facebook">Facebook</div>' +
 						'<div class="twitter" title="Share link on Twitter">Twitter</div>' +
 						'<div class="plusone" title="Share link on Google+">Google+</div>' +
