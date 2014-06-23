@@ -115,9 +115,9 @@
 }
 
 /* events list */
-.lbo-events-list { padding:0px; }
-.lbo-events-list .lbo-event { margin: 10px 0px; }
-.lbo-events-list .lbo-event figure {
+.lbo-feature-list { padding:0px; }
+.lbo-feature-list .lbo-event { margin: 10px 0px; }
+.lbo-feature-list .lbo-event figure {
 	border-radius: 7px;
 	border: 1px solid #e6e6e6;
 	background-color: #ffffff;
@@ -125,8 +125,8 @@
 	position: relative;
 	padding-bottom: 55px;
 }
-.lbo-events-list .lbo-event .lbo-event-teaser { padding:5px; }
-.lbo-events-list .lbo-event .lbo-event-footer { 
+.lbo-feature-list .lbo-event .lbo-event-teaser { padding:5px; }
+.lbo-feature-list .lbo-event .lbo-event-footer { 
 	padding: 10px;
 	background-color: #f6f6f6;
 	border-top: 1px solid #e6e6e6;
@@ -134,21 +134,21 @@
 	bottom: 0px;
 	width: 100%;
 }
-.lbo-events-list .lbo-event .crop { width: 200px; float: left; }
-.lbo-events-list .lbo-event .crop img { width: 200px; }
-.lbo-events-list .lbo-event figcaption { margin-left: 210px; }
-.lbo-events-list .lbo-event .lbo-event-book { float: right; }
+.lbo-feature-list .lbo-event .crop { width: 200px; float: left; }
+.lbo-feature-list .lbo-event .crop img { width: 200px; }
+.lbo-feature-list .lbo-event figcaption { margin-left: 210px; }
+.lbo-feature-list .lbo-event .lbo-event-book { float: right; }
 
 /* calendar bar */
 .lbo-calendar-wrapper {
 	height: 500px;
 	overflow-y:auto;
 }
-.lbo-calendar-bar {
+.lbo-timeline {
 	text-align: center;
 	padding:0px;
 }
-	.lbo-calendar-bar .lbo-date-header {
+	.lbo-timeline .lbo-date-header {
 		border-radius: 5px;
 		padding: 3px;
 		font-size:12px;
@@ -159,7 +159,7 @@
 		z-index: 10;
 		position: relative;
 	}
-	.lbo-calendar-bar .lbo-perfromance-date-items {
+	.lbo-timeline .lbo-perfromance-date-items {
 		width:100%;
 		border-radius: 5px;
 		background-color: #ffffff;
@@ -172,10 +172,10 @@
 		padding: 7px;
 		border-bottom: 2px solid rgb(213, 213, 213);
 	}
-	.lbo-calendar-bar .lbo-performance-date {
+	.lbo-timeline .lbo-performance-date {
 		margin-bottom: 20px;
 	}
-	.lbo-calendar-bar .lbo-perfromance-date-item {
+	.lbo-timeline .lbo-perfromance-date-item {
 	}
 .lbo-vertical-line{
 	height: 1000px;

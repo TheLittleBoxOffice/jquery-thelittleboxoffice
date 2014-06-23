@@ -27,6 +27,7 @@
 				categories: [],
 				use_bootstrap: false,
 				use_social_likes: true,
+				event_id_list: ''
 			};
 
 		// The actual plugin constructor
@@ -58,34 +59,36 @@
 				var html = "";
 				plugin.encodeFilters(plugin, element, settings);				
 				switch (settings.view_type) {
-					case "list":
-						$(element).append(plugin.buildList(plugin, element, settings));
+					case "feature":
+						$(element).append(plugin.buildFeature(plugin, element, settings));
 						$('.lbo-social-likes').socialLikes();		
 						break;
-					case "calendar-bar":
-						$(element).append(plugin.buildCalendar(plugin, element, settings));
-						$('.lbo-datepicker').datepicker();
-						console.log($('.lbo-datepicker'));
+					case "timeline":
+						$(element).append(plugin.buildTimeLine(plugin, element, settings));
+						break;
+					case "boardwalk":
+
 						break;
 				}
 			},
-			buildList: function(plugin, element, settings) {
+			buildBoardWalk: function(plugin, element, settings) {
+				
+			},
+			buildFeature: function(plugin, element, settings) {
 				var html = '';
-				var events = this.getEventsData();
+				var events = this.getEventsData(plugin, element, settings);
 				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				$(events).each(function(index, event) {
-					html += plugin.encodeItem(plugin, element, settings, event);
+					html += plugin.viewFeature(plugin, element, settings, event);
 				});
 				html += '</ul>';
+
 				return html;
 			},
-			buildCalendar: function(plugin, element, settings) {
+			buildTimeLine: function(plugin, element, settings) {
 				var html = '';
 				var performance_dates = this.getPerformancesByDateData(plugin, element, settings);
-				var html_calendar_button = '<div class="lbo-datepicker"></div>';
-
-				html += '<div class="lbo-calendar-wrapper"><div class="lbo-vertical-line"></div>';
-				html += html_calendar_button;
+				html += '<div class="lbo-timeline-wrapper"><div class="lbo-vertical-line"></div>';
 				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				for (var performance_date in performance_dates) {
 					html += plugin.viewCalendar(plugin, element, settings, performance_dates[performance_date]);
@@ -97,13 +100,24 @@
 			/* data functions */
 			getWrapperClasses: function(element, settings) {
 				switch (settings.view_type) {
-					case "list": return 'lbo-events-list';
+					case "feature": return 'lbo-feature-list';
 					case "grid": return 'lbo-events-grid cs-style-3 grid';
-					case "calendar-bar": return 'lbo-calendar-bar';
+					case "timeline": return 'lbo-timeline';
 				}
 			},
-			getEventsData: function() {
-				return lbo_events;
+			getEventsData: function(plugin, element, settings) {
+				var out = [];
+				if (settings.event_id_list == "") {
+					out = lbo_events;
+				} else {
+					var event_id_array = settings.event_id_list.split(",");
+					for (var i = 0; i < lbo_events.length - 1; i++) {
+						if (event_id_array.indexOf(lbo_events[i].id) > -1) {
+							out.push(lbo_events[i]);
+						}
+					}
+				}
+				return out;
 			},
 			getCategoriesData: function() {
 				return lbo_categories;
@@ -112,7 +126,7 @@
 				return lbo_venues;
 			},
 			getPerformancesByDateData: function(plugin, element, settings) {
-				var events = plugin.getEventsData();
+				var events = plugin.getEventsData(plugin, element, settings);
 				var performances_sorted = [];
 				var day_index = null , time_index = null; 
 				$(events).each(function(index, event) {
@@ -164,7 +178,7 @@
 					}
 					
 					if (!found) {
-						$(value).css('display', 'none');
+						//$(value).css('display', 'none');
 					} else {
 						$(value).css('display', 'block');
 					}
@@ -191,7 +205,7 @@
 					case "list":
 						return plugin.encodeFiltersList(plugin, element, settings);
 						break;
-					case "calendar-bar":
+					case "timeline":
 						return plugin.encodeFiltersCalendarBar(plugin, element, settings);
 						break;
 				}
@@ -252,16 +266,7 @@
 				}
 				return out;
 			},
-			encodeItem: function(plugin, element, settings, event) {
-				switch (settings.view_type) {
-					case "list":
-						return plugin.viewList(plugin, element, settings, event);
-						break;
-					case "grid":
-						return plugin.viewGrid(plugin, element, settings, event);
-						break;
-				}
-			},
+
 			/* views */
 			viewSocialLike: function(plugin, element, settings, event) {
 				return '' + 
@@ -292,7 +297,7 @@
 
 				return html_main;
 			},
-			viewList: function(plugin, element, settings, event) {
+			viewFeature: function(plugin, element, settings, event) {
 				var button_class = (settings.use_bootstrap == true) ? "lbo-event-book btn btn-primary" : "lbo-event-book";
 				var social_likes = plugin.encodeSocialLikes(plugin, element, settings, event);
 				var performances_code = "";
