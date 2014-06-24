@@ -137,7 +137,16 @@
 .lbo-feature-list .lbo-event .crop { width: 200px; float: left; }
 .lbo-feature-list .lbo-event .crop img { width: 200px; }
 .lbo-feature-list .lbo-event figcaption { margin-left: 210px; }
-.lbo-feature-list .lbo-event .lbo-event-book { float: right; }
+.lbo-feature-list .lbo-event .lbo-event-book {
+	position: absolute;
+	right: 5px;
+	top: 5px;
+}
+.lbo-feature-list .lbo-event .lbo-event-performances { 
+	position: absolute;
+	right: 116px;
+	top: 5px;
+}
 
 /* calendar bar */
 .lbo-calendar-wrapper {
@@ -170,26 +179,10 @@
 		z-index: 10;
 		position: relative;
 		padding: 7px;
-		border-bottom: 2px solid rgb(213, 213, 213);
 	}
-	.lbo-timeline .lbo-performance-date {
-		margin-bottom: 20px;
-	}
-	.lbo-timeline .lbo-perfromance-date-item {
-	}
-.lbo-vertical-line{
-	height: 1000px;
-	background-color: #CBD8E2;
-	width: 3px;
-	float: left;
-	z-index: 0;
-	margin: 0 auto;
-	display: block;
-	margin: auto auto;
-	padding: 0 auto;
-	position: relative;
-	left: 50%;
-}
+	.lbo-timeline .lbo-performance-date {}
+	.lbo-timeline .lbo-perfromance-date-item {}
+
 @media screen and (max-width: 31.5em) {
 	.grid {
 		padding: 10px 10px 100px 10px;

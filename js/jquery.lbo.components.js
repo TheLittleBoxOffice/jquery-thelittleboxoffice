@@ -88,7 +88,7 @@
 			buildTimeLine: function(plugin, element, settings) {
 				var html = '';
 				var performance_dates = this.getPerformancesByDateData(plugin, element, settings);
-				html += '<div class="lbo-timeline-wrapper"><div class="lbo-vertical-line"></div>';
+				html += '<div class="lbo-timeline-wrapper">';
 				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				for (var performance_date in performance_dates) {
 					html += plugin.viewCalendar(plugin, element, settings, performance_dates[performance_date]);
@@ -284,10 +284,11 @@
 
 				for (var performance_date in performance_dates) {
 					html_date = performance_dates[performance_date].start_date;
+					book_link = performance_dates[performance_date].event.link_base + '/book/selection/' + performance_dates[performance_date].id;
 					html_performances += 
-						'<div class="lbo-perfromance-date-item">' + 
+						'<div class="lbo-performance-date-item"><a href="' + book_link + '">' +
 							plugin.formatTime(performance_dates[performance_date].start_time) + 
-							' ' + performance_dates[performance_date].event.title + 
+							'</a> <a href="' + performance_dates[performance_date].event.link_view + '">' + performance_dates[performance_date].event.title + '</a>' +
 						'</div>';
 				}
 				
@@ -303,6 +304,8 @@
 				var performances_code = "";
 				var pdate = null;
 				var fulldate = '';
+				var datetext = plugin.viewFeatureDate(plugin, element, settings, event);
+				
 				$(event.performances).each(function(index, performance) {
 					performances_code += '<div class="lbo-performance" data-raw="' + performance.start_date + " " + performance.start_time + '">' + '' + '</div>';
 				});
@@ -311,6 +314,7 @@
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
 								'<figcaption>' +
 									'<h3><a href="' + event.link_view + '">' + event.title + '</a></h3>' +
+									datetext +
 									'<div class="lbo-event-teaser">' + event.teaser + '</div>' +
 								'</figcaption>' +
 								'<div class="performances">' +
@@ -318,7 +322,7 @@
 								'</div>' +
 								'<div class="lbo-event-footer">' + 
 									social_likes + 
-									'<a class="btn btn-performances" href="#">Performances</a>' +
+									'<a class="btn btn-default lbo-event-performances" href="#">Performances</a>' +
 									'<a class="' + button_class + '" href="' + event.link_book + '">Book Tickets</a>' +
 								'</div>' +
 							'</figure>' +
@@ -335,6 +339,13 @@
 								'</figcaption>' +
 							'</figure>' +
 						'</li>';
+			},
+			viewFeatureDate: function(plugin, element, settings, event) {
+				var performance_first = $(event.performances).first();
+				var performance_last = $(event.performances).first();
+				
+				datetext = '<strong>' + plugin.formatDate(plugin, performance[0].start_date) + " " + plugin.formatTime(performance[0].start_time) + '</strong>';
+
 			},
 			/* utiliy functions */
 			formatDate: function(plugin, str_date) {
