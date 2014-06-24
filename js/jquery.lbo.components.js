@@ -67,12 +67,12 @@
 						$(element).append(plugin.buildTimeLine(plugin, element, settings));
 						break;
 					case "boardwalk":
-
+						$(element).append(plugin.buildBoardWalk(plugin, element, settings));
 						break;
 				}
 			},
 			buildBoardWalk: function(plugin, element, settings) {
-				
+				return 'hello world';
 			},
 			buildFeature: function(plugin, element, settings) {
 				var html = '';
@@ -309,6 +309,7 @@
 				$(event.performances).each(function(index, performance) {
 					performances_code += '<div class="lbo-performance" data-raw="' + performance.start_date + " " + performance.start_time + '">' + '' + '</div>';
 				});
+
 				return	'<li class="lbo-event lbo-event-' + event.id + '" data-item-categories="' + event.categories.join('==[]==') + '" data-item-venue="' + event.venue_id + '">' +
 							'<figure>' +
 								'<div class="crop"><img src="' + event.image_large + '"/></div>' +
@@ -342,11 +343,16 @@
 			},
 			viewFeatureDate: function(plugin, element, settings, event) {
 				var performance_first = $(event.performances).first();
-				var performance_last = $(event.performances).first();
-				
-				datetext = '<strong>' + plugin.formatDate(plugin, performance[0].start_date) + " " + plugin.formatTime(performance[0].start_time) + '</strong>';
-
+				var performance_last = $(event.performances).last();
+				var link_book = event.url_base + '/book/selection/';
+				var out = '<strong class="lbo-event-dates">' + 
+					plugin.formatDate(plugin, performance_first[0].start_date) + " " + plugin.formatTime(performance_first[0].start_time);
+				if (event.performances.length > 1) 
+					out = out + ' - ' + plugin.formatDate(plugin, performance_last[0].start_date) + " " + plugin.formatTime(performance_last[0].start_time);
+				out = out + '</strong>';
+				return out;
 			},
+
 			/* utiliy functions */
 			formatDate: function(plugin, str_date) {
 				var date_parts = str_date.split('-');
