@@ -27,7 +27,9 @@
 				categories: [],
 				use_bootstrap: false,
 				use_social_likes: true,
-				event_id_list: ''
+				event_id_list: '',
+				category_list: [],
+				limit: 0
 			};
 
 		// The actual plugin constructor
@@ -72,11 +74,29 @@
 				}
 			},
 			buildBoardWalk: function(plugin, element, settings) {
-				return 'hello world';
+				var out = [], html = '';
+				var categories = plugin.getEventsByCategory(plugin, element, settings);
+				var category = null;
+				html += '<div class="lbo-board-walk">';
+				for (var category_id in categories) {					
+					category = plugin.getCategoryById(plugin, element, settings, category_id);
+					html += '<div class="lbo-board-walk-item">';
+						html += '<div class="lbo-category-title">' + category.title + '</div>';
+						html += '<ul>';
+						$(categories[category_id]).each(function(index, event) {
+							html += plugin.viewBoadwalkItem(plugin, element, settings, event);
+						});
+						html += '</ul>';
+					html += '</div>';
+				}
+				html += '</div>';
+
+				return html;
 			},
 			buildFeature: function(plugin, element, settings) {
 				var html = '';
 				var events = this.getEventsData(plugin, element, settings);
+
 				html += '<ul class="' + plugin.getWrapperClasses(element, settings) + '">';
 				$(events).each(function(index, event) {
 					html += plugin.viewFeature(plugin, element, settings, event);
@@ -107,12 +127,13 @@
 			},
 			getEventsData: function(plugin, element, settings) {
 				var out = [];
-				if (settings.event_id_list == "") {
+				
+				if (settings.event_id_list.length == 0) {
 					out = lbo_events;
 				} else {
-					var event_id_array = settings.event_id_list.split(",");
+					var event_id_array = settings.event_id_list;
 					for (var i = 0; i < lbo_events.length - 1; i++) {
-						if (event_id_array.indexOf(lbo_events[i].id) > -1) {
+						if (event_id_array.indexOf(parseInt(lbo_events[i].id)) > -1) {
 							out.push(lbo_events[i]);
 						}
 					}
@@ -143,6 +164,27 @@
 					});
 				});
 				return performances_sorted;
+			},
+			getEventsByCategory: function(plugin, element, settings) {
+				var out = [];
+				var events = plugin.getEventsData(plugin, element, settings);
+				$(events).each(function(index, event) {
+					$(event.categories).each(function(index, category) {
+						if (out[category] == undefined) 
+							out[category] = [];
+						out[category].push(event);
+					});
+				});		
+				return out;
+			},
+			getCategoryById: function(plugin, element, settings, category_id) {
+				var out = null;
+				$(plugin.getCategoriesData()).each(function(index, category) {
+					if (category.id == category_id) {
+						out = category;
+					}
+				});
+				return out;
 			},
 			/* events */
 			filterSelect_Change: function(plugin, element, settings) {
@@ -266,8 +308,16 @@
 				}
 				return out;
 			},
-
 			/* views */
+			viewBoadwalkItem: function(plugin, element, settings, event) {
+				return '' +
+					'<li class="lbo-event-' + event.id + '">' + 
+						'<a href="' + event.link_view + '">' + 
+							'<img src="' + event.image_small + '"/>' + 
+							'<span>' + event.title + '</span>' +
+						'</a>' + 
+					'</li>';
+			},
 			viewSocialLike: function(plugin, element, settings, event) {
 				return '' + 
 					'<div class="lbo-social-likes" data-counters="no" data-url="' + event.link + '" data-title="' + event.title + '">' +

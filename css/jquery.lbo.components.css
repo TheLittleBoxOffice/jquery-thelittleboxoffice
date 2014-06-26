@@ -4,7 +4,6 @@
 	list-style: none;
 	text-align: center;
 }
-
 .grid li {
 	display: inline-block;
 	width: 300px;
@@ -13,12 +12,10 @@
 	text-align: left;
 	position: relative;
 }
-
 .grid figure {
 	margin: 0;
 	position: relative;
 }
-
 .grid figure .crop {
 	width: 300px;
 	height: 300px;
@@ -182,6 +179,51 @@
 	}
 	.lbo-timeline .lbo-performance-date {}
 	.lbo-timeline .lbo-perfromance-date-item {}
+
+/* board walks */
+.lbo-board-walk {
+	width: 700px;
+	overflow-y: hidden;
+	overflow-x: auto;
+	color: #6d6d6d;
+	padding-bottom: 3px;
+	width: 100%;
+}
+	.lbo-board-walk .lbo-board-walk-item {
+		float:left;
+	}
+		.lbo-board-walk .lbo-board-walk-item > ul {
+			padding: 0px;
+		}
+	.lbo-board-walk .lbo-category-title {
+		clear:both;
+		display: inline-block;
+	}
+	.lbo-board-walk li {
+		list-style-type: none;
+		float: left;
+		margin-right: 5px;
+		display: block;
+		position: relative;
+		width: 136px;
+		height: 136px;
+		background: #fff;
+		overflow: hidden;
+	}
+	.lbo-board-walk li img {
+		width:136px;
+	}
+	.lbo-board-walk li > a > span {
+		position: absolute;
+		top: 0px;
+		left: 0px;
+		background-color: rgba(0,0,0,0.6);
+		color: white;
+		padding: 4px;
+		font-size: 12px;
+		width: 100%;
+		text-align: center;
+	}
 
 @media screen and (max-width: 31.5em) {
 	.grid {
