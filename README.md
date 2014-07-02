@@ -1,5 +1,5 @@
 jquery-thelittleboxoffice
 =============
 
-Running the example
--------------------
+Currently in development
+------------------------
