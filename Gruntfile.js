@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 			},
 			dist_js: {
 				src: ['src/base.js', 'src/query.js'],
-				dest: 'build/<%= pkg.name %>.js'
+				dest: 'build/tmp/<%= pkg.name %>.js'
 			}
 		},
 		uglify: {
@@ -17,17 +17,21 @@ module.exports = function(grunt) {
 				banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
 			},
 			build: {
-				src: 'build/<%= pkg.name %>.js',
+				src: 'build/tmp/<%= pkg.name %>.js',
 				dest: 'build/<%= pkg.name %>.min.js'
 			}
+		},
+		clean: {
+			folder: 'build/tmp'
 		}
 	});
 
 	// Load the plugins.
+	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-
+	
 	// Default task(s).
-	grunt.registerTask('default', ['concat', 'uglify']);
+	grunt.registerTask('default', ['concat', 'uglify', 'clean']);
 
 };

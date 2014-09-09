@@ -1,9 +1,10 @@
-(function($) {
+(function ( $ ) {
+	$.extend($.fn.thelittleboxoffice, {
 
-	$.extend($.fn.lbo, {
-		
-		churp : function() {
-			console.log('churp cheep!');
-		}		
+		query : function() {
+			
+		}
+
 	});
-});
+
+}( jQuery ));
