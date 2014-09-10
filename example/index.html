@@ -10,15 +10,15 @@
 	<![endif]-->
 
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<!--<script src="http://firebox.dev/api/jsframework/ource/8"></script>-->
-	<script src="../build/jquery-thelittleboxoffice.js"></script>
+	<script src="http://firebox.dev/riverhouse/api/jsframework/source"></script>
+	<script src="../build/tmp/jquery-thelittleboxoffice.js"></script>
 
 	<link rel="stylesheet" href="example.css">
 	<link rel="stylesheet" href="../css/jquery.lbo.components.css">
 
 	<script>
 		$(function() {
-			$('lboeventboard').thelittleboxoffice.poke();
+			$('lboeventboard').thelittleboxoffice.build({query:'event_id=397,398'});
 		});
 	</script>
 </head>
