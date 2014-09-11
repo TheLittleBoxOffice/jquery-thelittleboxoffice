@@ -8,7 +8,10 @@ module.exports = function(grunt) {
 				stripBanners: true
 			},
 			dist_js: {
-				src: ['src/base.js', 'src/query.js'],
+				src: [
+					'src/*.js',
+					'src/templates/*.js'
+				],
 				dest: 'build/tmp/<%= pkg.name %>.js'
 			}
 		},
@@ -33,5 +36,5 @@ module.exports = function(grunt) {
 	
 	// Default task(s).
 	grunt.registerTask('default', ['concat', 'uglify']);
-
+	//grunt.registerTask('default', ['concat', 'uglify', 'clean']);
 };

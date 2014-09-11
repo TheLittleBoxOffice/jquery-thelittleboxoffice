@@ -13,10 +13,12 @@
 			options = $.extend(this.default_options, options);
 			
 			// execute the query
-			var data = $.fn.thelittleboxoffice.query(options.query)
+			//var dataset = $.fn.thelittleboxoffice.query(options.query);
+
+			$.fn.thelittleboxoffice.template({'message' : 'Hello World'}, "Standdard");
 
 			console.log('#########################');
-			console.log(data);
+			console.log(dataset);
 		}
 	});
 }( jQuery ));
