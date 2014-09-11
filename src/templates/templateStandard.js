@@ -3,7 +3,7 @@
 
 		templateStandard : function() {
 
-			return "<h1><%message%></h1>";
+			return "<h1><%this.message%></h1>";
 		}
 
 	});

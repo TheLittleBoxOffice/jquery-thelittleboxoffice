@@ -3,6 +3,11 @@ module.exports = function(grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
+		log: {
+			foo: [1, 2, 3],
+			bar: 'hello world',
+			baz: false
+		},
 		concat: {
 			options: {
 				stripBanners: true
@@ -33,8 +38,12 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
-	
+
 	// Default task(s).
 	grunt.registerTask('default', ['concat', 'uglify']);
-	//grunt.registerTask('default', ['concat', 'uglify', 'clean']);
+	
+	// custom
+	grunt.registerMultiTask('log', 'Log stuff.', function() {
+		grunt.log.writeln(this.target + ': ' + this.data);
+	});
 };

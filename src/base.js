@@ -14,11 +14,11 @@
 			
 			// execute the query
 			//var dataset = $.fn.thelittleboxoffice.query(options.query);
-
-			$.fn.thelittleboxoffice.template({'message' : 'Hello World'}, "Standdard");
+			
+			var template = $.fn.thelittleboxoffice.template({"message" : "Hello World"}, "Standard");
 
 			console.log('#########################');
-			console.log(dataset);
+			console.log(template);
 		}
 	});
 }( jQuery ));

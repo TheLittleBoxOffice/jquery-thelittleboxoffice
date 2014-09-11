@@ -1,20 +1,20 @@
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		template : function(template_name, dataset) {
+		template : function(dataset, template_name) {
 		
-			return bakeTemplate(
+			return this.bakeTemplate(
 				this.getTemplate(template_name), 
 				dataset
 			);
 		},
 
 		getTemplate : function(template_name) {
-			return this['template' + template_name];
+			return this['template' + template_name]();
 		},
 
 		bakeTemplate : function(template, dataset) {
-
+			console.log(dataset);
 			var re = /<%([^%>]+)?%>/g, reExp = /(^( )?(if|for|else|switch|case|break|{|}))(.*)?/g, code = 'var r=[];\n', cursor = 0;
 			var add = function(line, js) {
 				js? (code += line.match(reExp) ? line + '\n' : 'r.push(' + line + ');\n') :
@@ -33,4 +33,4 @@
 		}
 
 	});
-});
+}( jQuery ));
