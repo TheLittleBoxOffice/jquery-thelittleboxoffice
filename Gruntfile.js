@@ -3,10 +3,15 @@ module.exports = function(grunt) {
 	// Project configuration.
 	grunt.initConfig({
 		pkg: grunt.file.readJSON('package.json'),
-		log: {
-			foo: [1, 2, 3],
-			bar: 'hello world',
-			baz: false
+		handlebars: {
+			compile : {
+				options: {
+					namespace: 'JST'
+				},
+				files: {
+					'build/tmp/templates.js' : ['src/templates/*.hbs']
+				}
+			}
 		},
 		concat: {
 			options: {
@@ -15,7 +20,7 @@ module.exports = function(grunt) {
 			dist_js: {
 				src: [
 					'src/*.js',
-					'src/templates/*.js'
+					'build/tmp/templates.js'
 				],
 				dest: 'build/tmp/<%= pkg.name %>.js'
 			}
@@ -38,12 +43,10 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-contrib-clean');
 	grunt.loadNpmTasks('grunt-contrib-concat');
 	grunt.loadNpmTasks('grunt-contrib-uglify');
+	grunt.loadNpmTasks('grunt-contrib-handlebars');
 
 	// Default task(s).
-	grunt.registerTask('default', ['concat', 'uglify']);
+	grunt.registerTask('default', ['handlebars', 'concat', 'uglify']);
 	
-	// custom
-	grunt.registerMultiTask('log', 'Log stuff.', function() {
-		grunt.log.writeln(this.target + ': ' + this.data);
-	});
+
 };
