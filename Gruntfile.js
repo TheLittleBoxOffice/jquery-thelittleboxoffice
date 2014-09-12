@@ -6,7 +6,7 @@ module.exports = function(grunt) {
 		handlebars: {
 			compile : {
 				options: {
-					namespace: 'JST'
+					namespace: 'templates'
 				},
 				files: {
 					'build/tmp/templates.js' : ['src/templates/*.hbs']
@@ -47,6 +47,4 @@ module.exports = function(grunt) {
 
 	// Default task(s).
 	grunt.registerTask('default', ['handlebars', 'concat', 'uglify']);
-	
-
 };

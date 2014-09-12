@@ -17,8 +17,7 @@
 			
 			var template = $.fn.thelittleboxoffice.template({"message" : "Hello World"}, "Standard");
 
-			console.log('#########################');
-			console.log(template);
+			
 		}
 	});
 }( jQuery ));
