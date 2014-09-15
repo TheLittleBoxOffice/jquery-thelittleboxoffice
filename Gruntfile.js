@@ -9,7 +9,10 @@ module.exports = function(grunt) {
 					namespace: 'templates'
 				},
 				files: {
-					'build/tmp/templates.js' : ['src/templates/*.hbs']
+					'build/tmp/templates.js' : [
+						'src/templates/*/*.html',
+						'src/templates/*.html'
+					]
 				}
 			}
 		},
@@ -20,6 +23,7 @@ module.exports = function(grunt) {
 			dist_js: {
 				src: [
 					'src/*.js',
+					'src/themes/*.js',
 					'build/tmp/templates.js'
 				],
 				dest: 'build/tmp/<%= pkg.name %>.js'

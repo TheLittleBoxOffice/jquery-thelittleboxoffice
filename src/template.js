@@ -9,7 +9,7 @@
 		},
 
 		getTemplate : function(template_name) {
-			return templates["src/templates/standard.hbs"];
+			return templates["src/templates/" + template_name + ".html"];
 		},
 
 		bakeTemplate : function(template, dataset) {

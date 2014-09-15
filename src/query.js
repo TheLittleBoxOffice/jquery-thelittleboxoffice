@@ -9,7 +9,7 @@
 			for (var i = 0; i < commands.length; i++) {
 				this.processCommand(commands[i], dataset);
 			}
-			
+					
 			// return the rows highlighted for filtering
 			return this.getFiltered(dataset, commands);
 		},
@@ -25,19 +25,36 @@
 			return output;
 		},
 
+		hasFilter : function(commands) {
+
+			var out = false;
+
+			for (var i = 0; i < commands.length; i++) {
+				if ($.inArray(commands[i].name, ["category_id", "event_id"])) {
+					out = true;
+				}
+			}
+
+			return out;
+		},
+
 		decodeCommands : function(query_string) {
 
 			var commands = [];
 			var query_array = query_string.split(';');
 			var alpha = null; 
+			var match = null;
 
 			for (var i = 0; i < query_array.length; i++) {
-				alpha = query_array[i].match(/([^A-Z_])/i).index;
-				commands.push({
-					'name' : query_array[i].substring(0, alpha),
-					'operand' : query_array[i].substring(alpha, alpha + 1),
-					'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
-				});
+				match = query_array[i].match(/([^A-Z_])/i);
+				if (match != null) {
+					alpha = match.index;	
+					commands.push({
+						'name' : query_array[i].substring(0, alpha),
+						'operand' : query_array[i].substring(alpha, alpha + 1),
+						'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
+					});
+				} 
 			}
 			commands.sort(function(a, b) {
 				var out = 9999;
@@ -48,6 +65,14 @@
 				}
 				return out;
 			});
+
+			if (this.hasFilter(commands) == false) {
+				commands.push({
+					'name' : 'all',
+					'operand' : '',
+					'params' : '' 
+				});
+			}
 
 			return commands;
 		},
@@ -64,6 +89,9 @@
 		processCommand : function(command, output) {
 			
 			switch (command.name) {
+				case 'all':
+					output = this.processCommandAll(output);
+					break;
 				case 'category_id':
 					output = this.processCommandCategoryId(command.operand, command.params, output);
 					break;
@@ -73,6 +101,12 @@
 				case 'sort':
 					output = this.processCommandSort(command.operand, command.params, output);
 					break;
+			}
+		},
+
+		processCommandAll : function(dataset) {
+			for (var i = 0; i < dataset.length; i++) {	
+				dataset[i]["filter_all"] = true;
 			}
 		},
 

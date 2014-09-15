@@ -5,8 +5,9 @@
 		default_options : {
 			'query' : '',
 			'template' : 'default',
-			'target' : null
-		},
+			'target' : null,
+			'theme' : 'billboard'
+ 		},
 
 		build : function(options) {
 			
@@ -16,11 +17,18 @@
 			// execute the query
 			var dataset = $.fn.thelittleboxoffice.query(options.query);
 			
-			// build the template
-			var template = $.fn.thelittleboxoffice.template({"message" : "Hello World"}, "Standard");
+			// build the theme and render
+			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
+			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset));
+			
+		},
 
-			// render to the target
-			$(options.target).html(template);
+		getThemeFunctionName : function(theme_name) {
+			return "theme" + this.capitaliseFirstLetter(theme_name) + "Encode";
+		},
+
+		capitaliseFirstLetter : function(string) {
+			return string.charAt(0).toUpperCase() + string.slice(1);
 		}
 	});
 }( jQuery ));
