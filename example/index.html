@@ -20,7 +20,10 @@
 
 	<script>
 		$(function() {
-			$('lboeventboard').thelittleboxoffice.build({query:'event_id=397,398'});
+			$.fn.thelittleboxoffice.build({
+				query:'event_id=397,398',
+				target: $('.lboeventboard')
+			});
 		});
 	</script>
 </head>

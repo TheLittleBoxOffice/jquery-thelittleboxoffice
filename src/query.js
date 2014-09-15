@@ -148,9 +148,6 @@
 
 			for (var i = 0; i < dataset.length; i++) {
 				for (var c = 0; c < commands.length; c++) {
-					
-					console.log(dataset[i]["filter_" + this.translateFieldName(commands[c].name)]);
-					
 					if (dataset[i]["filter_" + this.translateFieldName(commands[c].name)] == true) {
 						output.push(dataset[i]);
 					}
