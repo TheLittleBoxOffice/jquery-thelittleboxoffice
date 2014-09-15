@@ -1,6 +1,11 @@
 body {
-	font-family: Helvetica;
-	font-size: 12px;
+	font-family: 'Open Sans';
+	font-size: 21px;
+	color: rgb(86, 90, 92);
+}
+
+a {
+	outline: 0;
 }
 
 .column1 {
