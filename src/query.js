@@ -9,7 +9,7 @@
 			for (var i = 0; i < commands.length; i++) {
 				this.processCommand(commands[i], dataset);
 			}
-					
+
 			// return the rows highlighted for filtering
 			return this.getFiltered(dataset, commands);
 		},
@@ -59,8 +59,20 @@
 			commands.sort(function(a, b) {
 				var out = 9999;
 				switch (a.name) {
-					case 'cat':
+					case 'category_id':
 						out = 0;
+						break;
+					case 'event_id':
+						out = 1
+						break;
+					case 'search':
+						out = 2;
+						break;
+					case 'sort':
+						out = 98;
+						break;
+					case 'limit':
+						out = 99;
 						break;
 				}
 				return out;
@@ -101,7 +113,23 @@
 				case 'sort':
 					output = this.processCommandSort(command.operand, command.params, output);
 					break;
+				case 'limit':
+					output = this.processCommandLimit(command.operand, command.params, output);
+					break;
 			}
+		},
+
+		processCommandLimit: function(operand, params, dataset) {
+			var limit = parseInt(params.pop());
+			var filtered = [];
+
+			for (var i = 0; i < dataset.length; i++) {	
+				if (i < limit) {
+					filtered.push(dataset[i]);
+				}
+			}
+			
+			return filtered;
 		},
 
 		processCommandAll : function(dataset) {

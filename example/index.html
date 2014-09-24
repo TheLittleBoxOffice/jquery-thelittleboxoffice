@@ -11,8 +11,8 @@
 
 	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 	<script src="lib/handlebars.runtime.min.js"></script>
-	<script src="http://firebox.dev/riverhouse/api/jsframework/source"></script>
-	<!--<script src="../build/tmp/jquery-thelittleboxoffice.js"></script>-->
+	<!--<script src="http://firebox.dev/riverhouse/api/jsframework/source"></script>-->
+	<script src="testdata.js"></script>
 	<script src="../build/tmp/jquery-thelittleboxoffice.js"></script>
 
 	<link rel="stylesheet" href="example.css">
@@ -22,7 +22,7 @@
 	<script>
 		$(function() {
 			$.fn.thelittleboxoffice.build({
-				query : '',
+				query : 'limit=5',
 				target : $('.lboeventboard')
 			});
 		});
