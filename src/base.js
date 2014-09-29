@@ -16,11 +16,10 @@
 			
 			// execute the query
 			var dataset = $.fn.thelittleboxoffice.query(options.query);
-			
+
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset));
-			
 		},
 
 		getThemeFunctionName : function(theme_name) {
@@ -29,6 +28,12 @@
 
 		capitaliseFirstLetter : function(string) {
 			return string.charAt(0).toUpperCase() + string.slice(1);
+		},
+
+		listCategories : function(options) {
+			$(options.target).html(
+				$.fn.thelittleboxoffice.template({'categories' : lbo_categories}, "misc/category_list")
+			);
 		}
 	});
 }( jQuery ));

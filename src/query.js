@@ -7,11 +7,11 @@
 			var commands = this.decodeCommands(query_string);
 			
 			for (var i = 0; i < commands.length; i++) {
-				this.processCommand(commands[i], dataset);
+				dataset = this.processCommand(commands[i], dataset);
 			}
 
 			// return the rows highlighted for filtering
-			return this.getFiltered(dataset, commands);
+			return dataset;
 		},
 
 		cloneDataSet : function() {
@@ -117,13 +117,15 @@
 					output = this.processCommandLimit(command.operand, command.params, output);
 					break;
 			}
+
+			return output;
 		},
 
 		processCommandLimit: function(operand, params, dataset) {
 			var limit = parseInt(params.pop());
 			var filtered = [];
 
-			for (var i = 0; i < dataset.length; i++) {	
+			for (var i = 0; i < dataset.length; i++) {
 				if (i < limit) {
 					filtered.push(dataset[i]);
 				}
@@ -133,9 +135,7 @@
 		},
 
 		processCommandAll : function(dataset) {
-			for (var i = 0; i < dataset.length; i++) {	
-				dataset[i]["filter_all"] = true;
-			}
+			return dataset;
 		},
 
 		processCommandEventId : function(operand, params, dataset) {
@@ -144,13 +144,14 @@
 
 		processCommandCategoryId : function(operand, params, dataset) {
 
-			// var decoded_params = this.decodeParams(operand, params);
+			var filtered = [];
+			var decoded_params = this.decodeParams(operand, params);
 		
-			// for (var i = 0; i < decoded_params.length; i++) {
-			// 	filtered = this.applyCatFilter(operand, decoded_params[i], filtered);
-			// }
+			for (var i = 0; i < decoded_params.length; i++) {
+				filtered = this.applyCatFilter(operand, decoded_params[i], filtered);
+			}
 
-			// return filtered;
+			return filtered;
 		},
 
 		processCommandSort : function(operand, params, output) {
@@ -180,42 +181,16 @@
 		applyCategoryIdFilter : function(operand, param, output) {
 
 			var filtered = [];
-			var present = false;
-
+	
 			for (var i = 0; i < output.length; i++) {
-				present = false;
 				for (var c = 0; c < output[i].categories.length; c++) {
 					if (output[i].categories[c] == param.value) {
-						present = true;
-					}
-				}
-				if (operand == '=') {
-					if (present) {
 						filtered.push(output[i]);
-					}
-				} else {
-					if (!present) {
-						filtered.push(output[i]);	
 					}
 				}
 			}
 			
 			return filtered;
-		},
-
-		getFiltered : function(dataset, commands) {
-
-			var field_trans = null;
-			var output = [];
-
-			for (var i = 0; i < dataset.length; i++) {
-				for (var c = 0; c < commands.length; c++) {
-					if (dataset[i]["filter_" + this.translateFieldName(commands[c].name)] == true) {
-						output.push(dataset[i]);
-					}
-				}
-			}
-			return output;
 		},
 
 		decodeParams : function(operand, params) {

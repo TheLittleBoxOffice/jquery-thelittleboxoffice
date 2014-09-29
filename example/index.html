@@ -22,11 +22,15 @@
 	<script>
 		$(function() {
 			$.fn.thelittleboxoffice.build({
-				query : 'limit=5',
+				query : 'limit=5;category_id=13',
 				target : $('.lboeventboard')
+			});
+			$.fn.thelittleboxoffice.listCategories({
+				target : $('.lbocalendar')
 			});
 		});
 	</script>
+
 </head>
 
 <body id="home" class="no-touch">
