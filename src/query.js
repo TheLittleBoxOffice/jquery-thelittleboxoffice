@@ -1,28 +1,36 @@
+var lbo_previous = [];
+
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		query : function(query_string) {
+		query : function(query) {
 			
+			// clone the dataset and convert the commands to objects
 			var dataset = this.cloneDataSet();
-			var commands = this.decodeCommands(query_string);
+			var commands = this.decodeCommands(query);
 			
+			// apply all the command in the query
 			for (var i = 0; i < commands.length; i++) {
 				dataset = this.processCommand(commands[i], dataset);
 			}
 
+			// add to the previous array
+			this.addToPrevious(dataset);
+			
 			// return the rows highlighted for filtering
 			return dataset;
 		},
 
 		cloneDataSet : function() {
-			
 			output = [];
-
-			for (var i = 0; i < lbo_events.length; i++) {
+			for (var i = 0; i < lbo_events.length; i++) 
 				output.push(lbo_events[i]);
-			}
-
 			return output;
+		},
+
+		addToPrevious : function(filtered) {
+			for (var i = 0; i < filtered.length; i++)
+				lbo_previous.push(filtered[i]);
 		},
 
 		hasFilter : function(commands) {
@@ -30,9 +38,8 @@
 			var out = false;
 
 			for (var i = 0; i < commands.length; i++) {
-				if ($.inArray(commands[i].name, ["category_id", "event_id"])) {
+				if ($.inArray(commands[i].name, ["category_id", "event_id"])) 
 					out = true;
-				}
 			}
 
 			return out;
@@ -59,14 +66,16 @@
 			commands.sort(function(a, b) {
 				var out = 9999;
 				switch (a.name) {
-					case 'category_id':
+					case 'original':
 						out = 0;
+					case 'category_id':
+						out = 1;
 						break;
 					case 'event_id':
-						out = 1
+						out = 2
 						break;
 					case 'search':
-						out = 2;
+						out = 3;
 						break;
 					case 'sort':
 						out = 98;
@@ -77,7 +86,6 @@
 				}
 				return out;
 			});
-
 			if (this.hasFilter(commands) == false) {
 				commands.push({
 					'name' : 'all',
@@ -85,7 +93,7 @@
 					'params' : '' 
 				});
 			}
-
+			
 			return commands;
 		},
 
@@ -99,10 +107,13 @@
 		},
 
 		processCommand : function(command, output) {
-			
+			console.log(command.name);
 			switch (command.name) {
 				case 'all':
 					output = this.processCommandAll(output);
+					break;
+				case 'original':
+					output = this.processCommandOriginal(output);
 					break;
 				case 'category_id':
 					output = this.processCommandCategoryId(command.operand, command.params, output);
@@ -126,9 +137,8 @@
 			var filtered = [];
 
 			for (var i = 0; i < dataset.length; i++) {
-				if (i < limit) {
+				if (i < limit) 
 					filtered.push(dataset[i]);
-				}
 			}
 			
 			return filtered;
@@ -142,21 +152,20 @@
 			this.applyFilter(this.translateFieldName("event_id"), operand, this.decodeParams(operand, params), dataset);
 		},
 
-		processCommandCategoryId : function(operand, params, dataset) {
-
-			var filtered = [];
-			var decoded_params = this.decodeParams(operand, params);
-		
-			for (var i = 0; i < decoded_params.length; i++) {
-				filtered = this.applyCatFilter(operand, decoded_params[i], filtered);
+		processCommandOriginal : function(dataset) {
+			return this.applyOriginalFilter(dataset);
+			if (lbo_previous.length > 0) {
+				return this.applyOriginalFilter(dataset);
+			} else {
+				return dataset;
 			}
-
-			return filtered;
 		},
 
-		processCommandSort : function(operand, params, output) {
-			console.log('Not Implemented');			
+		processCommandCategoryId : function(operand, params, dataset) {	
+			return this.applyCategoryIdFilter(operand, this.decodeParams(operand, params), dataset);
 		},
+
+		processCommandSort : function(operand, params, output) {},
 
 		applyFilter : function(field, operand, params, dataset) {
 
@@ -168,9 +177,8 @@
 				dataset[i]["filter_" + field] = false;
 
 				for (var p = 0; p < params.length; p++) {	
-					if (String(dataset[i][field]) == String(params[p].value)) {
+					if (String(dataset[i][field]) == String(params[p].value)) 
 						present = true;
-					}
 				}
 
 				if (present) 
@@ -181,18 +189,41 @@
 		applyCategoryIdFilter : function(operand, param, output) {
 
 			var filtered = [];
-	
+			var found = false;
 			for (var i = 0; i < output.length; i++) {
 				for (var c = 0; c < output[i].categories.length; c++) {
-					if (output[i].categories[c] == param.value) {
-						filtered.push(output[i]);
+					found = false;
+					for (var p = 0; p < param.length; p++) {
+						if (output[i].categories[c] == param[p].value) {
+							found = true;
+						}
 					}
+					if (found)
+						filtered.push(output[i]);
 				}
 			}
 			
 			return filtered;
 		},
 
+		applyOriginalFilter : function(dataset) {
+
+			var filtered = [];
+			var found = false;
+			
+			for (var i = 0; i < dataset.length; i++) {
+				found = false;
+				for (var p = 0; p < lbo_previous.length; p++) {
+					if (dataset[i].id == lbo_previous[p].id) 
+						found = true;
+				}
+				if (found == false)
+					filtered.push(dataset[i]);
+			}
+			
+			return filtered;
+		},
+		
 		decodeParams : function(operand, params) {
 
 			var output = [];
@@ -206,6 +237,5 @@
 
 			return output;
 		}
-
 	});
 }( jQuery ));

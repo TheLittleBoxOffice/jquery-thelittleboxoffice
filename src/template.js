@@ -9,7 +9,6 @@
 		},
 
 		getTemplate : function(template_name) {
-			console.log(template_name);
 			return templates["src/templates/" + template_name + ".html"];
 		},
 

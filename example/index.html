@@ -22,11 +22,16 @@
 	<script>
 		$(function() {
 			$.fn.thelittleboxoffice.build({
-				query : 'limit=5;category_id=13',
+				query : 'limit=2;category_id=13',
 				target : $('.lboeventboard')
 			});
+			$.fn.thelittleboxoffice.build({
+				query : 'category_id=13,16;original=1;',
+				target : $('.lbocalendar'),
+				theme : 'list'
+			});
 			$.fn.thelittleboxoffice.listCategories({
-				target : $('.lbocalendar')
+				target: $('.lbocategories')
 			});
 		});
 	</script>
@@ -43,6 +48,8 @@
 	<div class="column2">
 		<div class="lbocalendar"></div>
 	</div>
+	<div class="lbocategories">
 
+	</div>
 </body>
 </html>

@@ -4,9 +4,8 @@ body {
 	color: rgb(86, 90, 92);
 }
 
-a {
-	outline: 0;
-}
+a { outline: 0; }
+h1 { font-weight: 100; }
 
 .column1 {
 	width: auto;
