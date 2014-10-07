@@ -2,10 +2,17 @@ body {
 	font-family: 'Open Sans';
 	font-size: 21px;
 	color: rgb(86, 90, 92);
+	padding: 0px;
+	margin: 0px;
 }
 
 a { outline: 0; }
-h1 { font-weight: 100; }
+h1 { 
+	font-weight: 100; 
+	display: block;
+	width: 100%;
+	background-color: #e8ecef;
+}
 
 .column1 {
 	width: auto;
