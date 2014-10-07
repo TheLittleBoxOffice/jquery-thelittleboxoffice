@@ -24,6 +24,7 @@ module.exports = function(grunt) {
 				src: [
 					'src/*.js',
 					'src/themes/*.js',
+					'src/components/*.js',
 					'dist/tmp/templates.js'
 				],
 				dest: 'dist/tmp/<%= pkg.name %>.js'
