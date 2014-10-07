@@ -9,7 +9,7 @@ module.exports = function(grunt) {
 					namespace: 'templates'
 				},
 				files: {
-					'build/tmp/templates.js' : [
+					'dist/tmp/templates.js' : [
 						'src/templates/*/*.html',
 						'src/templates/*.html'
 					]
@@ -24,9 +24,9 @@ module.exports = function(grunt) {
 				src: [
 					'src/*.js',
 					'src/themes/*.js',
-					'build/tmp/templates.js'
+					'dist/tmp/templates.js'
 				],
-				dest: 'build/tmp/<%= pkg.name %>.js'
+				dest: 'dist/tmp/<%= pkg.name %>.js'
 			}
 		},
 		uglify: {
@@ -34,12 +34,12 @@ module.exports = function(grunt) {
 				banner: '/*! <%= pkg.name %> <%= grunt.template.today("yyyy-mm-dd") %> */\n'
 			},
 			build: {
-				src: 'build/tmp/<%= pkg.name %>.js',
-				dest: 'build/<%= pkg.name %>.min.js'
+				src: 'dist/tmp/<%= pkg.name %>.js',
+				dest: 'dist/<%= pkg.name %>.min.js'
 			}
 		},
 		clean: {
-			folder: 'build/tmp'
+			folder: 'dist/tmp'
 		}
 	});
 
