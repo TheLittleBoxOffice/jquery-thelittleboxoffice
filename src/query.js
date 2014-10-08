@@ -48,44 +48,47 @@ var lbo_previous = [];
 		decodeCommands : function(query_string) {
 
 			var commands = [];
-			var query_array = query_string.split(';');
+			var query_array = [];
 			var alpha = null; 
 			var match = null;
 
-			for (var i = 0; i < query_array.length; i++) {
-				match = query_array[i].match(/([^A-Z_])/i);
-				if (match != null) {
-					alpha = match.index;	
-					commands.push({
-						'name' : query_array[i].substring(0, alpha),
-						'operand' : query_array[i].substring(alpha, alpha + 1),
-						'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
-					});
-				} 
-			}
-			commands.sort(function(a, b) {
-				var out = 9999;
-				switch (a.name) {
-					case 'original':
-						out = 0;
-					case 'category_id':
-						out = 1;
-						break;
-					case 'event_id':
-						out = 2
-						break;
-					case 'search':
-						out = 3;
-						break;
-					case 'sort':
-						out = 98;
-						break;
-					case 'limit':
-						out = 99;
-						break;
+			if (query_string.length > 0) {
+				query_array = query_string.split(';');
+				for (var i = 0; i < query_array.length; i++) {
+					match = query_array[i].match(/([^A-Z_])/i);
+					if (match != null) {
+						alpha = match.index;	
+						commands.push({
+							'name' : query_array[i].substring(0, alpha),
+							'operand' : query_array[i].substring(alpha, alpha + 1),
+							'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
+						});
+					} 
 				}
-				return out;
-			});
+				commands.sort(function(a, b) {
+					var out = 9999;
+					switch (a.name) {
+						case 'original':
+							out = 0;
+						case 'category_id':
+							out = 1;
+							break;
+						case 'event_id':
+							out = 2
+							break;
+						case 'search':
+							out = 3;
+							break;
+						case 'sort':
+							out = 98;
+							break;
+						case 'limit':
+							out = 99;
+							break;
+					}
+					return out;
+				});
+			}
 			if (this.hasFilter(commands) == false) {
 				commands.push({
 					'name' : 'all',

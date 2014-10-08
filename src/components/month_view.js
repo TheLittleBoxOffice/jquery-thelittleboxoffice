@@ -2,6 +2,7 @@
 	$.extend($.fn.thelittleboxoffice, {
 
 		month_view_default_options : {
+			'query' : 'test',
 			'target' : null
  		},
 
@@ -12,6 +13,9 @@
 			// extend the defaults with user options
 			options = $.extend(this.month_view_default_options, options);
 
+			// store the options in the data
+			$(options['target']).data("month_view_query_string", options.query);
+			
 			// encode the month view
 			html = html + $.fn.thelittleboxoffice.template(null, "month_view/month_view_base");
 
@@ -29,9 +33,10 @@
 
 		monthView_Click : function() {
 
-			var month = $(this).find('select').val();
-
-			console.log($.fn.thelittleboxoffice.getMonthViewData(month));
+			var dataset = $.fn.thelittleboxoffice.getMonthViewData(
+				$(this).find('select').val(),
+				$(this).data("month_view_query_string")
+			);
 		}
 	});
 }( jQuery ));
