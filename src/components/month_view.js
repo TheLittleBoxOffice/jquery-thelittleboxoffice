@@ -37,6 +37,8 @@
 				$(this).find('select').val(),
 				$(this).data("month_view_query_string")
 			);
+
+			console.log(dataset);
 		}
 	});
 }( jQuery ));
