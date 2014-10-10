@@ -34,6 +34,25 @@
 
 		capitaliseFirstLetter : function(string) {
 			return string.charAt(0).toUpperCase() + string.slice(1);
+		},
+
+		dateToInt : function(str_date) {
+			return parseInt(str_date.replace(/-/gi, "").replace(/:/gi, ""));
+		},
+
+		strToDate : function(str_date) {
+			var parts = str_date.split(" ");
+			var date_parts = parts[0].split("-");
+			var time_parts = parts[1].split(":");
+
+			return new Date(
+				parseInt(date_parts[0]),
+				parseInt(date_parts[1]),
+				parseInt(date_parts[2]),
+				parseInt(time_parts[0]),
+				parseInt(time_parts[1]),
+				parseInt(time_parts[2])
+			);
 		}
 	});
 }( jQuery ));

@@ -33,12 +33,18 @@
 
 		monthView_Click : function() {
 
+			var html = '';
+
 			var dataset = $.fn.thelittleboxoffice.getMonthViewData(
-				$(this).find('select').val(),
-				$(this).data("month_view_query_string")
+				$(this).data("month_view_query_string"),
+				$(this).find('select').val()
 			);
 
-			console.log(dataset);
+			for (var p = 0; p < dataset.length; p++) {
+				html = html + $.fn.thelittleboxoffice.template(dataset[p], "month_view/month_view_performance");
+			}
+
+			$(this).find(".lbo-performances").html(html);
 		}
 	});
 }( jQuery ));

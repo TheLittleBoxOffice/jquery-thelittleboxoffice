@@ -239,6 +239,28 @@ var lbo_previous = [];
 			}
 
 			return output;
+		},
+
+		convertDataSetToPerformance : function(dataset) {
+
+			var performances = [];
+			
+			for (var e = 0; e < dataset.length; e++) {
+				for (var p = 0; p < dataset[e].performances.length; p++) {
+					var performance = {};
+					
+					performance.title = dataset[e].title;
+					performance.image_large = dataset[e].image_large;
+					performance.teaser = dataset[e].teaser;
+					performance.start_date = dataset[e].performances[p].start_date;
+					performance.start_time = dataset[e].performances[p].start_time;
+					performance.link_book = dataset[e].link_book;
+
+					performances.push(performance);
+				}
+			}
+			console.log(performances);
+			return performances;
 		}
 	});
 }( jQuery ));
