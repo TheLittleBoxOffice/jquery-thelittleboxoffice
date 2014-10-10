@@ -10,7 +10,7 @@
 			dataset = $.fn.thelittleboxoffice.filterByMonth(dataset, month);
 			dataset = $.fn.thelittleboxoffice.sortByStartDate(dataset);
 			dataset = $.fn.thelittleboxoffice.addFormattedStartDate(dataset);
-
+			
 			return dataset;
 		},
 
@@ -29,9 +29,16 @@
 
 		addFormattedStartDate : function(dataset) {
 
+			var weekdays = $.fn.thelittleboxoffice.getWeekDays();
+
 			for (var p = 0; p < dataset.length; p++) {
-				console.log($.fn.thelittleboxoffice.strToDate(dataset[p].start_date + ' ' + dataset[p].start_time));
-				dataset[p].formatted_start_date = $.fn.thelittleboxoffice.strToDate(dataset[p].start_date + ' ' + dataset[p].start_time);
+				
+				var start_date = $.fn.thelittleboxoffice.strToDate(dataset[p].start_date + ' ' + dataset[p].start_time);
+				var weekdays = $.fn.thelittleboxoffice.getWeekDays();
+
+				dataset[p].start_date_day = weekdays[start_date.getDay()];
+				dataset[p].start_date_month_day = start_date.getDate();
+				dataset[p].start_date_short = start_date.getMinutes() + ":" + start_date.getHours();
 			}
 
 			return dataset;

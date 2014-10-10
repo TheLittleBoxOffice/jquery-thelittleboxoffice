@@ -1,7 +1,12 @@
 <li>	
-	<img src="{{image_large}}" />
-	<div>{{title}}</div>
-	<div>{{teaser}}</div>
-	<div>{{start_date}} {{start_time}}</div>
-	<a href="{{link_book}}">Book</a>
+	<div class="lbo-image">
+		<img src="{{image_large}}" />
+	</div>
+	<span class="lbo-time">
+		<span class="lbo-start-month-day">{{start_date_month_day}}</span>
+		<span class="lbo-start-day">{{start_date_day}}</span>
+	</span>
+	<div class="lbo-title">
+		<a href="{{link_book}}">{{title}}</a>
+	</div>
 </li>

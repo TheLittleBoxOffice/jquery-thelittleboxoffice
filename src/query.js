@@ -259,7 +259,7 @@ var lbo_previous = [];
 					performances.push(performance);
 				}
 			}
-			console.log(performances);
+			
 			return performances;
 		}
 	});

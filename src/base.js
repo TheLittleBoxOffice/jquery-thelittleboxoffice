@@ -44,7 +44,6 @@
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
 			var time_parts = parts[1].split(":");
-
 			return new Date(
 				parseInt(date_parts[0]),
 				parseInt(date_parts[1]),
@@ -53,6 +52,18 @@
 				parseInt(time_parts[1]),
 				parseInt(time_parts[2])
 			);
+		},
+
+		getWeekDays : function() {
+			return [
+				"Sun",
+				"Mon",
+				"Tue",
+				"Wed",
+				"Thu",
+				"Fri",
+				"Sat"
+			];
 		}
 	});
 }( jQuery ));

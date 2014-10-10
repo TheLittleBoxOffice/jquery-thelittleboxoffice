@@ -27,7 +27,6 @@
 		},
 
 		monthViewHookUpEvents : function(target) {
-
 			$(target).click(this.monthView_Click);
 		},
 
@@ -39,7 +38,6 @@
 				$(this).data("month_view_query_string"),
 				$(this).find('select').val()
 			);
-
 			for (var p = 0; p < dataset.length; p++) {
 				html = html + $.fn.thelittleboxoffice.template(dataset[p], "month_view/month_view_performance");
 			}
