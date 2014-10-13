@@ -1,20 +1,55 @@
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		getMonthViewData : function(query, month) {
+		getActiveMonths : function() {
+
+			var months = $.fn.thelittleboxoffice.getMonths();
+			var dataset = $.fn.thelittleboxoffice.cloneDataSet();
+			var unsorted = [];
+			var out = [];
+			var month, year, combined;
+
+			for (var e = 0; e < dataset.length; e++) {
+				for (var p = 0; p < dataset[e].performances.length; p++) {
+
+					month = dataset[e].performances[p].start_date.split("-")[1];
+					year = dataset[e].performances[p].start_date.split("-")[0];
+					combined = String(year).concat(String(month));
+					
+					if (unsorted[combined] == undefined) {
+						unsorted[combined] = {
+							"month" : month,
+							"year" : year
+						};
+					}
+				}
+			}
 			
+			var keys = Object.keys(unsorted).sort();
+
+			for (e = 0; e < keys.length; e++) {
+				unsorted[keys[e]]["text_month"] = months[parseInt(unsorted[keys[e]]["month"]) - 1];
+				unsorted[keys[e]]["key"] = keys[e];
+				out.push(unsorted[keys[e]]);
+			}
+			
+			return out;
+		},
+
+		getMonthViewData : function(query, year, month) {
+			console.log(query);
 			var dataset = $.fn.thelittleboxoffice.convertDataSetToPerformance(
 				$.fn.thelittleboxoffice.query(query)
 			);
 
-			dataset = $.fn.thelittleboxoffice.filterByMonth(dataset, month);
+			dataset = $.fn.thelittleboxoffice.filterByYearAndMonth(dataset, year, month);
 			dataset = $.fn.thelittleboxoffice.sortByStartDate(dataset);
 			dataset = $.fn.thelittleboxoffice.addFormattedStartDate(dataset);
 			
 			return dataset;
 		},
-
-		filterByMonth : function(dataset, month) {
+		
+		filterByYearAndMonth : function(dataset, year, month) {
 
 			var filtered = [];
 			

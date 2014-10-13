@@ -110,29 +110,20 @@ var lbo_previous = [];
 		},
 
 		processCommand : function(command, output) {
-			console.log(command.name);
 			switch (command.name) {
 				case 'all':
-					output = this.processCommandAll(output);
-					break;
+					return this.processCommandAll(output);
 				case 'original':
-					output = this.processCommandOriginal(output);
-					break;
+					return this.processCommandOriginal(output);
 				case 'category_id':
-					output = this.processCommandCategoryId(command.operand, command.params, output);
-					break;
+					return this.processCommandCategoryId(command.operand, command.params, output);
 				case 'event_id':
-					output = this.processCommandEventId(command.operand, command.params, output);
-					break;
+					return this.processCommandEventId(command.operand, command.params, output);
 				case 'sort':
-					output = this.processCommandSort(command.operand, command.params, output);
-					break;
+					return this.processCommandSort(command.operand, command.params, output);
 				case 'limit':
-					output = this.processCommandLimit(command.operand, command.params, output);
-					break;
+					return this.processCommandLimit(command.operand, command.params, output);
 			}
-
-			return output;
 		},
 
 		processCommandLimit: function(operand, params, dataset) {
