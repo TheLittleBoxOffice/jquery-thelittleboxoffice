@@ -37,9 +37,9 @@
 		},
 
 		getMonthViewData : function(query, year, month) {
-			console.log(query);
+
 			var dataset = $.fn.thelittleboxoffice.convertDataSetToPerformance(
-				$.fn.thelittleboxoffice.query(query)
+				$.fn.thelittleboxoffice.query(query, false)
 			);
 
 			dataset = $.fn.thelittleboxoffice.filterByYearAndMonth(dataset, year, month);
@@ -54,7 +54,9 @@
 			var filtered = [];
 			
 			for (var p = 0; p < dataset.length; p++) {
-				if (parseInt(dataset[p].start_date.split("-")[1]) == parseInt(month)) {
+				if (parseInt(dataset[p].start_date.split("-")[1]) == parseInt(month) &&
+						parseInt(dataset[p].start_date.split("-")[0]) == parseInt(year)) {
+
 					filtered.push(dataset[p]);
 				}
 			}

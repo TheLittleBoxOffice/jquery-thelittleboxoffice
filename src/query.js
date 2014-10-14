@@ -3,7 +3,7 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		query : function(query) {
+		query : function(query, savePrevious) {
 			
 			// clone the dataset and convert the commands to objects
 			var dataset = this.cloneDataSet();
@@ -15,7 +15,8 @@ var lbo_previous = [];
 			}
 
 			// add to the previous array
-			this.addToPrevious(dataset);
+			if (savePrevious === true)
+				this.addToPrevious(dataset);
 			
 			// return the rows highlighted for filtering
 			return dataset;
@@ -147,7 +148,6 @@ var lbo_previous = [];
 		},
 
 		processCommandOriginal : function(dataset) {
-			return this.applyOriginalFilter(dataset);
 			if (lbo_previous.length > 0) {
 				return this.applyOriginalFilter(dataset);
 			} else {
@@ -253,5 +253,6 @@ var lbo_previous = [];
 			
 			return performances;
 		}
+		
 	});
 }( jQuery ));

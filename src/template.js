@@ -15,5 +15,6 @@
 		bakeTemplate : function(template, dataset) {
 			return template(dataset);
 		}
+		
 	});
 }( jQuery ));

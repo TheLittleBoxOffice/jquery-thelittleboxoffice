@@ -15,7 +15,7 @@
 			options = $.extend(this.default_options, options);
 			
 			// execute the query
-			var dataset = $.fn.thelittleboxoffice.query(options.query, options.debug);
+			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
 
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
@@ -82,5 +82,6 @@
 				"December"
 			];
 		}
+		
 	});
 }( jQuery ));

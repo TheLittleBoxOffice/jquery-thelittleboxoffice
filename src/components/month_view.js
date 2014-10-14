@@ -15,7 +15,7 @@
 
 			// store the options in the data
 			$(options['target']).data("month_view_query_string", options.query);
-			
+
 			// encode the month view
 			html = html + $.fn.thelittleboxoffice.template({
 				"month_select" : $.fn.thelittleboxoffice.monthSelectEncode(),
@@ -23,12 +23,12 @@
 
 			// render out the html to the target
 			$(options['target']).html(html);
-
+			
 			// hookup events
 			this.monthViewHookUpEvents(options['target'].parent().find("select"));
 
 			// fire the event
-			$.fn.thelittleboxoffice.monthView_Change(null, $(options["target"]).find("select"));
+			$.fn.thelittleboxoffice.monthView_Change(null, $(options["target"]));
 		},
 
 		monthViewHookUpEvents : function(target) {
@@ -38,23 +38,22 @@
 		monthView_Change : function(event, target) {
 
 			var html = '';
+			var month_view_div = target;
+			var month_view_select = $(target).find("select");
 
 			if (event != null) {
-				target = $(event.currentTarget).find("select");
+				month_view_div = $(event.currentTarget).parent().parent();
+				month_view_select = $(month_view_div).find("select");
 			}
-
-			console.log(target)
-			console.log($(this).data("month_view_query_string"));
-			
 			var dataset = $.fn.thelittleboxoffice.getMonthViewData(
-				$(this).data("month_view_query_string"),
-				$(target).val().split("_")[1],
-				$(target).val().split("_")[0]
+				$(month_view_div).data("month_view_query_string"),
+				$(month_view_select).val().split("_")[1],
+				$(month_view_select).val().split("_")[0]
 			);
 			for (var p = 0; p < dataset.length; p++) {
 				html = html + $.fn.thelittleboxoffice.template(dataset[p], "month_view/month_view_performance");
 			}
-			$(this).find(".lbo-performances").html(html);
+			$(month_view_div).find(".lbo-performances").html(html);
 		},
 
 		monthSelectEncode : function() {				
