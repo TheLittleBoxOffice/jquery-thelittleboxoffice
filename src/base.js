@@ -19,6 +19,7 @@
 
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
+			console.log(theme_function);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset));
 		},
 		
