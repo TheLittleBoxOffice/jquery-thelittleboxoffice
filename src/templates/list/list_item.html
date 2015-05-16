@@ -1,7 +1,10 @@
 
-	<div class="lbo-list-item">
+	<div class="lbo-list-item {{options.item_class}}">
+		{{#if image_small}}
 		<div class="lbo-crop">
 			<img src="{{image_small}}" alt="{{title}}"/>
 		</div>
+		{{/if}}
 		<a href="{{link_view}}" class="lbo-title">{{title}}</a>
+		<div class="paragraph-end details-light"></div>
 	</div>

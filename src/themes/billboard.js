@@ -1,7 +1,7 @@
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		themeBillboardEncode : function(dataset) {
+		themeBillboardEncode : function(dataset, options) {
 			
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {
@@ -10,7 +10,7 @@
 			return html;
 		},
 
-		themeBillboardSmallEncode : function(dataset) {
+		themeBillboardSmallEncode : function(dataset, options) {
 			
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {

@@ -6,8 +6,10 @@
 			'query' : '',
 			'template' : 'default',
 			'target' : null,
-			'theme' : 'billboard'
- 		},
+			'theme' : 'billboard',
+			'item_class' : '',
+			'wrapper_class' : ''
+  		},
 
 		build : function(options) {
 			
@@ -19,8 +21,7 @@
 
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
-			console.log(theme_function);
-			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset));
+			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
 		},
 		
 		listCategories : function(options) {

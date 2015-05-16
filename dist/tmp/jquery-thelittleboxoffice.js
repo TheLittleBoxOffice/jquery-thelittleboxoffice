@@ -6,8 +6,10 @@
 			'query' : '',
 			'template' : 'default',
 			'target' : null,
-			'theme' : 'billboard'
- 		},
+			'theme' : 'billboard',
+			'item_class' : '',
+			'wrapper_class' : ''
+  		},
 
 		build : function(options) {
 			
@@ -19,8 +21,7 @@
 
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
-			console.log(theme_function);
-			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset));
+			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
 		},
 		
 		listCategories : function(options) {
@@ -368,7 +369,7 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		themeBillboardEncode : function(dataset) {
+		themeBillboardEncode : function(dataset, options) {
 			
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {
@@ -377,7 +378,7 @@ var lbo_previous = [];
 			return html;
 		},
 
-		themeBillboardSmallEncode : function(dataset) {
+		themeBillboardSmallEncode : function(dataset, options) {
 			
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {
@@ -391,12 +392,17 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		themeCarouselEncode : function(dataset) {
+		themeCarouselEncode : function(dataset, options) {
 			
 			var html = '';
 			var items_html = '';
+			var data_item = null;
+
+			console.log(dataset);
 
 			for (var i = 0; i < dataset.length; i++) {
+				data_item = dataset[i];
+				data_item.first = (i == 0) ? true : false;
 				items_html = items_html + $.fn.thelittleboxoffice.template(dataset[i], "carousel/carousel_item");
 			}
 
@@ -408,10 +414,12 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		themeListEncode : function(dataset) {
+		themeListEncode : function(dataset, options) {
 			
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {
+				dataset[i].options = options;
+				console.log(options);
 				html = html + $.fn.thelittleboxoffice.template(dataset[i], "list/list_item");
 			}
 			return html;
@@ -606,39 +614,47 @@ this["templates"]["src/templates/billboard/billboard_item.html"] = Handlebars.te
 this["templates"]["src/templates/carousel/carousel_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "<div class=\"item\">\n	<div class=\"carousel-caption\">\n		<img src=\""
+  return "<div class=\"item\" >\n	<div class=\"row\">\n		<div class=\"col-md-6 lbo-image\">\n			<img src=\""
     + alias3(((helper = (helper = helpers.image_large || (depth0 != null ? depth0.image_large : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"image_large","hash":{},"data":data}) : helper)))
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "\"/>\n		<h1 class=\"lbo-title\">"
+    + "\"/>\n		</div>\n		<div class=\"col-md-6 lbo-content\">\n			<h1 class=\"lbo-title\">"
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</h1>\n		<p class=\"lbo-teaser\">"
+    + "</h1>\n			<p class=\"lbo-teaser\">"
     + ((stack1 = ((helper = (helper = helpers.teaser || (depth0 != null ? depth0.teaser : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"teaser","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "</p>\n		<a href=\""
+    + "</p>\n			<a href=\""
     + alias3(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
-    + "\" class=\"btn btn-primary\" role=\"button\">Learn more »</a>\n	</div>\n</div>";
+    + "\" class=\"btn btn-primary\" role=\"button\">Learn more »</a>\n		</div>\n	</div>\n</div>";
 },"useData":true});
 
 this["templates"]["src/templates/carousel/carousel_wrapper.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper;
 
-  return "<div id=\"myCarousel\" class=\"carousel slide\" data-ride=\"carousel\">\n	<!-- Indicators -->\n	<ol class=\"carousel-indicators\">\n		<li data-target=\"#myCarousel\" data-slide-to=\"0\" class=\"active\"></li>\n		<li data-target=\"#myCarousel\" data-slide-to=\"1\"></li>\n		<li data-target=\"#myCarousel\" data-slide-to=\"2\"></li>\n		<li data-target=\"#myCarousel\" data-slide-to=\"3\"></li>\n	</ol>\n\n	<!-- Wrapper for slides -->\n	<div class=\"carousel-inner\" role=\"listbox\">\n		"
+  return "<div id=\"owl-example\" class=\"owl-carousel\">\n\n	<!-- Wrapper for slides -->\n	"
     + ((stack1 = ((helper = (helper = helpers.items_html || (depth0 != null ? depth0.items_html : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"items_html","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "\n	</div>\n\n	<!-- Left and right controls -->\n	<a class=\"left carousel-control\" href=\"#myCarousel\" role=\"button\" data-slide=\"prev\">\n		<span class=\"glyphicon glyphicon-chevron-left\" aria-hidden=\"true\"></span>\n		<span class=\"sr-only\">Previous</span>\n	</a>\n	<a class=\"right carousel-control\" href=\"#myCarousel\" role=\"button\" data-slide=\"next\">\n		<span class=\"glyphicon glyphicon-chevron-right\" aria-hidden=\"true\"></span>\n		<span class=\"sr-only\">Next</span>\n	</a>\n	</div>";
+    + "\n	\n	\n		\n</div>";
 },"useData":true});
 
-this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
     var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "\n	<div class=\"lbo-list-item\">\n		<div class=\"lbo-crop\">\n			<img src=\""
+  return "		<div class=\"lbo-crop\">\n			<img src=\""
     + alias3(((helper = (helper = helpers.image_small || (depth0 != null ? depth0.image_small : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"image_small","hash":{},"data":data}) : helper)))
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "\"/>\n		</div>\n		<a href=\""
-    + alias3(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
+    + "\"/>\n		</div>\n";
+},"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
+
+  return "\n	<div class=\"lbo-list-item "
+    + alias1(this.lambda(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + "\">\n"
+    + ((stack1 = helpers['if'].call(depth0,(depth0 != null ? depth0.image_small : depth0),{"name":"if","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
+    + "		<a href=\""
+    + alias1(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
     + "\" class=\"lbo-title\">"
-    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</a>\n	</div>\n";
+    + alias1(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</a>\n		<div class=\"paragraph-end details-light\"></div>\n	</div>\n";
 },"useData":true});
 
 this["templates"]["src/templates/misc/category_list.html"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
