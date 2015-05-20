@@ -22,12 +22,21 @@
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
+
+			// run theme script if exists
+			var script_function = $.fn.thelittleboxoffice.getScriptFunctionName(options.theme);
+			if ($.fn.thelittleboxoffice[script_function] != undefined) 
+				$.fn.thelittleboxoffice[script_function](options);
 		},
 		
 		listCategories : function(options) {
 			$(options.target).html(
 				$.fn.thelittleboxoffice.template({'categories' : lbo_categories}, "misc/category_list")
 			);
+		},
+
+		getScriptFunctionName : function(theme_name) {
+			return "theme" + this.capitaliseFirstLetter(theme_name) + "Script";
 		},
 
 		getThemeFunctionName : function(theme_name) {
@@ -419,11 +428,72 @@ var lbo_previous = [];
 			var html = '';
 			for (var i = 0; i < dataset.length; i++) {
 				dataset[i].options = options;
-				console.log(options);
 				html = html + $.fn.thelittleboxoffice.template(dataset[i], "list/list_item");
 			}
 			return html;
 		}		
+
+	});
+}( jQuery ));
+(function ( $ ) {
+	$.extend($.fn.thelittleboxoffice, {
+
+		themeSearchEncode : function(dataset, options) {
+			
+			var html = '';
+
+			var data = {
+				search_form : $.fn.thelittleboxoffice.template(null, "search/search_form")
+			}
+
+			html = html + $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
+
+			return html;
+		},
+
+		themeSearchScript : function(options) {
+
+			// setup the datepicker
+			$('.lbo-search-datepicker').datetimepicker();
+
+			// setup the categories dropdown
+			var ele_categories = $('form[name="lbo-form-search"] select[name="category"]');
+			ele_categories.append('<option value="0"></option>');
+			for (var c = 0; c < lbo_categories.length; c++) {
+				ele_categories.append('<option value="' + lbo_categories[c].id + '">' + lbo_categories[c].title + '</option>');
+			}
+			ele_categories.change(function() {
+				$('form#lbo-form-search').submit();
+			});
+
+			// setup the form
+			$('form#lbo-form-search').submit(function(event) {
+				$.fn.thelittleboxoffice.themeSearchExecuteSearch(options);
+				event.preventDefault();
+				return false;
+			});
+		},
+
+		themeSearchExecuteSearch : function(options) {
+			
+			var query = '';
+			var ele_results = $('.lbo-search-results');
+			var ele_categories = $('form[name="lbo-form-search"] select[name="category"]');
+
+			ele_results.html('');
+			
+			if (ele_categories.val() > 0) 
+				query += 'category_id=' + ele_categories.val() + ';';
+			
+			console.log(query, ele_results);
+
+			$.fn.thelittleboxoffice.build({
+				query : query,
+				target : ele_results,
+				theme : 'list',
+				item_class : 'card'
+			});
+		}
 
 	});
 }( jQuery ));
@@ -614,17 +684,17 @@ this["templates"]["src/templates/billboard/billboard_item.html"] = Handlebars.te
 this["templates"]["src/templates/carousel/carousel_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "<div class=\"item\" >\n	<div class=\"row\">\n		<div class=\"col-md-6 lbo-image\">\n			<img src=\""
+  return "<div class=\"item\" >\n	<div class=\"lbo-content\">\n		<h1 class=\"lbo-title\">"
+    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</h1>\n		<p class=\"lbo-teaser\">"
+    + ((stack1 = ((helper = (helper = helpers.teaser || (depth0 != null ? depth0.teaser : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"teaser","hash":{},"data":data}) : helper))) != null ? stack1 : "")
+    + "<div class=\"paragraph-end details-light\"></div></p>\n		<a href=\""
+    + alias3(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
+    + "\" class=\"btn btn-primary\" role=\"button\">Learn more »</a>\n	</div>\n	<div class=\"lbo-image\">\n		<img src=\""
     + alias3(((helper = (helper = helpers.image_large || (depth0 != null ? depth0.image_large : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"image_large","hash":{},"data":data}) : helper)))
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "\"/>\n		</div>\n		<div class=\"col-md-6 lbo-content\">\n			<h1 class=\"lbo-title\">"
-    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</h1>\n			<p class=\"lbo-teaser\">"
-    + ((stack1 = ((helper = (helper = helpers.teaser || (depth0 != null ? depth0.teaser : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"teaser","hash":{},"data":data}) : helper))) != null ? stack1 : "")
-    + "</p>\n			<a href=\""
-    + alias3(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
-    + "\" class=\"btn btn-primary\" role=\"button\">Learn more »</a>\n		</div>\n	</div>\n</div>";
+    + "\"/>\n	</div>\n</div>";
 },"useData":true});
 
 this["templates"]["src/templates/carousel/carousel_wrapper.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
@@ -715,4 +785,16 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
   return "	<select class=\"form-control\">\n"
     + ((stack1 = helpers.each.call(depth0,(depth0 != null ? depth0.active_months : depth0),{"name":"each","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
     + "	</select>";
+},"useData":true});
+
+this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category\" class=\"form-control\" placeholder=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+},"useData":true});
+
+this["templates"]["src/templates/search/search_wrapper.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var stack1, helper;
+
+  return "<div class=\"lbo-search\">\n\n	"
+    + ((stack1 = ((helper = (helper = helpers.search_form || (depth0 != null ? depth0.search_form : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"search_form","hash":{},"data":data}) : helper))) != null ? stack1 : "")
+    + "\n\n	<div class=\"lbo-search-results\"></div>\n\n</div>";
 },"useData":true});

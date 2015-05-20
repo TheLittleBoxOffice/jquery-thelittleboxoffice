@@ -22,12 +22,21 @@
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
+
+			// run theme script if exists
+			var script_function = $.fn.thelittleboxoffice.getScriptFunctionName(options.theme);
+			if ($.fn.thelittleboxoffice[script_function] != undefined) 
+				$.fn.thelittleboxoffice[script_function](options);
 		},
 		
 		listCategories : function(options) {
 			$(options.target).html(
 				$.fn.thelittleboxoffice.template({'categories' : lbo_categories}, "misc/category_list")
 			);
+		},
+
+		getScriptFunctionName : function(theme_name) {
+			return "theme" + this.capitaliseFirstLetter(theme_name) + "Script";
 		},
 
 		getThemeFunctionName : function(theme_name) {
