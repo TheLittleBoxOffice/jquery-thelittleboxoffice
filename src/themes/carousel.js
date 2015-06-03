@@ -7,8 +7,6 @@
 			var items_html = '';
 			var data_item = null;
 
-			console.log(dataset);
-
 			for (var i = 0; i < dataset.length; i++) {
 				data_item = dataset[i];
 				data_item.first = (i == 0) ? true : false;

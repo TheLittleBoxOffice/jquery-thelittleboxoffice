@@ -123,7 +123,19 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
 },"useData":true});
 
 this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category\" class=\"form-control\" placeholder=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+},"useData":true});
+
+this["templates"]["src/templates/search/search_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
+
+  return "<div class=\"lbo-search-group "
+    + alias3(((helper = (helper = helpers.group_class || (depth0 != null ? depth0.group_class : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"group_class","hash":{},"data":data}) : helper)))
+    + "\">\n	<h2>"
+    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</h2>\n	<div id=\"lbo-search-group-content-"
+    + alias3(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\" class=\"lbo-search-group-content\"></div>\n</div>";
 },"useData":true});
 
 this["templates"]["src/templates/search/search_wrapper.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {

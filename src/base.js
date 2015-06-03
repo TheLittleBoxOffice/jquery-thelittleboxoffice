@@ -8,7 +8,8 @@
 			'target' : null,
 			'theme' : 'billboard',
 			'item_class' : '',
-			'wrapper_class' : ''
+			'wrapper_class' : '',
+			'change' : null
   		},
 
 		build : function(options) {

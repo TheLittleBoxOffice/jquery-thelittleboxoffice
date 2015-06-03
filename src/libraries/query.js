@@ -5,13 +5,16 @@ var lbo_previous = [];
 
 		query : function(query, savePrevious) {
 			
+			console.log('query', query);
+
 			// clone the dataset and convert the commands to objects
-			var dataset = this.cloneDataSet();
+			var dataset = this.reCreateDataSet();
 			var commands = this.decodeCommands(query);
 			
 			// apply all the command in the query
 			for (var i = 0; i < commands.length; i++) {
 				dataset = this.processCommand(commands[i], dataset);
+				console.log('here', commands[i], dataset);
 			}
 
 			// add to the previous array
@@ -22,15 +25,19 @@ var lbo_previous = [];
 			return dataset;
 		},
 
-		cloneDataSet : function() {
-			output = [];
+		reCreateDataSet : function() {
+			output = this.createDataSet();
 			for (var i = 0; i < lbo_events.length; i++) 
-				output.push(lbo_events[i]);
+				output.data.push(lbo_events[i]);
 			return output;
 		},
 
+		cloneDataSet : function(dataset) {
+			return jQuery.extend(true, {}, dataset);
+		},
+
 		addToPrevious : function(filtered) {
-			for (var i = 0; i < filtered.length; i++)
+			for (var i = 0; i < filtered.data.length; i++)
 				lbo_previous.push(filtered[i]);
 		},
 
@@ -83,8 +90,11 @@ var lbo_previous = [];
 						case 'sort':
 							out = 98;
 							break;
-						case 'limit':
+						case 'group_a':
 							out = 99;
+							break;
+						case 'limit':
+							out = 100;
 							break;
 					}
 					return out;
@@ -107,10 +117,12 @@ var lbo_previous = [];
 					return "id";
 				default:
 					return field;
+			
 			}
 		},
 
 		processCommand : function(command, output) {
+
 			switch (command.name) {
 				case 'all':
 					return this.processCommandAll(output);
@@ -124,16 +136,53 @@ var lbo_previous = [];
 					return this.processCommandSort(command.operand, command.params, output);
 				case 'limit':
 					return this.processCommandLimit(command.operand, command.params, output);
+				case 'group':
+					return this.processCommandGroup(command.operand, command.params, output);
 			}
 		},
 
-		processCommandLimit: function(operand, params, dataset) {
-			var limit = parseInt(params.pop());
-			var filtered = [];
+		processCommandGroup : function(operand, params, dataset) {
+			if (params == 'categories') 
+				return this.processCommandGroupCategory(operand, params, dataset);
+		},
 
-			for (var i = 0; i < dataset.length; i++) {
+		processCommandGroupCategory : function(operand, params, dataset) {
+
+			var out = jQuery.extend(true, {}, dataset);
+			out.data = [];
+			out.cursor_with_object_group = 'category';
+
+			for (var i = 0; i < dataset.data.length; i++) {
+				for (var c = 0; c < dataset.data[i].categories.length; c++) {
+
+					// make sure a group exists for this category
+					if (typeof out[dataset.data[i].categories[c]] == 'undefined') 
+						out.data[dataset.data[i].categories[c]] = new Array();
+					
+					// add the category
+					out.data[dataset.data[i].categories[c]].push(dataset.data[i]);
+				}
+			}
+			
+			return out;
+		},
+
+		createDataSet : function() {
+			return {
+				data : [],
+				cursor_with_object_group : false,
+			}
+		},
+
+		processCommandLimit : function(operand, params, dataset) {
+
+			var out = this.cloneDataSet(dataset);
+			out.data = [];
+			var limit = parseInt(params.pop());
+
+			for (var i = 0; i < dataset.data.length; i++) {
 				if (i < limit) 
-					filtered.push(dataset[i]);
+					filtered.data.push(dataset.data[i]);
 			}
 			
 			return filtered;
@@ -165,35 +214,38 @@ var lbo_previous = [];
 
 			var present = false;
 
-			for (var i = 0; i < dataset.length; i++) {				
+			for (var i = 0; i < dataset.data.length; i++) {				
 				
 				present = false;
-				dataset[i]["filter_" + field] = false;
+				dataset.data[i]["filter_" + field] = false;
 
 				for (var p = 0; p < params.length; p++) {	
-					if (String(dataset[i][field]) == String(params[p].value)) 
+					if (String(dataset.data[i][field]) == String(params[p].value)) 
 						present = true;
 				}
 
 				if (present) 
-					dataset[i]["filter_" + field] = true;
+					dataset.data[i]["filter_" + field] = true;
 			}
 		},
 
-		applyCategoryIdFilter : function(operand, param, output) {
+		applyCategoryIdFilter : function(operand, param, dataset) {
 
-			var filtered = [];
+			var filtered = this.cloneDataSet(dataset);
 			var found = false;
-			for (var i = 0; i < output.length; i++) {
-				for (var c = 0; c < output[i].categories.length; c++) {
+
+			filtered.data = [];
+
+			for (var i = 0; i < dataset.length; i++) {
+				for (var c = 0; c < dataset[i].categories.length; c++) {
 					found = false;
 					for (var p = 0; p < param.length; p++) {
-						if (output[i].categories[c] == param[p].value) {
+						if (dataset[i].categories[c] == param[p].value) {
 							found = true;
 						}
 					}
 					if (found)
-						filtered.push(output[i]);
+						filtered.data.push(dataset[i]);
 				}
 			}
 			
@@ -202,17 +254,19 @@ var lbo_previous = [];
 
 		applyOriginalFilter : function(dataset) {
 
-			var filtered = [];
+			var filtered = this.cloneDataSet(dataset);
 			var found = false;
+
+			filtered.data = [];
 			
-			for (var i = 0; i < dataset.length; i++) {
+			for (var i = 0; i < dataset.data.length; i++) {
 				found = false;
 				for (var p = 0; p < lbo_previous.length; p++) {
-					if (dataset[i].id == lbo_previous[p].id) 
+					if (dataset.data[i].id == lbo_previous[p].id) 
 						found = true;
 				}
 				if (found == false)
-					filtered.push(dataset[i]);
+					filtered.push(dataset.data[i]);
 			}
 			
 			return filtered;
@@ -236,16 +290,16 @@ var lbo_previous = [];
 
 			var performances = [];
 			
-			for (var e = 0; e < dataset.length; e++) {
-				for (var p = 0; p < dataset[e].performances.length; p++) {
+			for (var e = 0; e < dataset.data.length; e++) {
+				for (var p = 0; p < dataset.data[e].performances.length; p++) {
 					var performance = {};
 					
-					performance.title = dataset[e].title;
-					performance.image_large = dataset[e].image_large;
-					performance.teaser = dataset[e].teaser;
-					performance.start_date = dataset[e].performances[p].start_date;
-					performance.start_time = dataset[e].performances[p].start_time;
-					performance.link_book = dataset[e].link_book;
+					performance.title = dataset.data[e].title;
+					performance.image_large = dataset.data[e].image_large;
+					performance.teaser = dataset.data[e].teaser;
+					performance.start_date = dataset.data[e].performances[p].start_date;
+					performance.start_time = dataset.data[e].performances[p].start_time;
+					performance.link_book = dataset.data[e].link_book;
 
 					performances.push(performance);
 				}

@@ -8,7 +8,8 @@
 			'target' : null,
 			'theme' : 'billboard',
 			'item_class' : '',
-			'wrapper_class' : ''
+			'wrapper_class' : '',
+			'change' : null
   		},
 
 		build : function(options) {
@@ -96,285 +97,6 @@
 		
 	});
 }( jQuery ));
-var lbo_previous = [];
-
-(function ( $ ) {
-	$.extend($.fn.thelittleboxoffice, {
-
-		query : function(query, savePrevious) {
-			
-			// clone the dataset and convert the commands to objects
-			var dataset = this.cloneDataSet();
-			var commands = this.decodeCommands(query);
-			
-			// apply all the command in the query
-			for (var i = 0; i < commands.length; i++) {
-				dataset = this.processCommand(commands[i], dataset);
-			}
-
-			// add to the previous array
-			if (savePrevious === true)
-				this.addToPrevious(dataset);
-			
-			// return the rows highlighted for filtering
-			return dataset;
-		},
-
-		cloneDataSet : function() {
-			output = [];
-			for (var i = 0; i < lbo_events.length; i++) 
-				output.push(lbo_events[i]);
-			return output;
-		},
-
-		addToPrevious : function(filtered) {
-			for (var i = 0; i < filtered.length; i++)
-				lbo_previous.push(filtered[i]);
-		},
-
-		hasFilter : function(commands) {
-
-			var out = false;
-
-			for (var i = 0; i < commands.length; i++) {
-				if ($.inArray(commands[i].name, ["category_id", "event_id"])) 
-					out = true;
-			}
-
-			return out;
-		},
-
-		decodeCommands : function(query_string) {
-
-			var commands = [];
-			var query_array = [];
-			var alpha = null; 
-			var match = null;
-
-			if (query_string.length > 0) {
-				query_array = query_string.split(';');
-				for (var i = 0; i < query_array.length; i++) {
-					match = query_array[i].match(/([^A-Z_])/i);
-					if (match != null) {
-						alpha = match.index;	
-						commands.push({
-							'name' : query_array[i].substring(0, alpha),
-							'operand' : query_array[i].substring(alpha, alpha + 1),
-							'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
-						});
-					} 
-				}
-				commands.sort(function(a, b) {
-					var out = 9999;
-					switch (a.name) {
-						case 'original':
-							out = 0;
-						case 'category_id':
-							out = 1;
-							break;
-						case 'event_id':
-							out = 2
-							break;
-						case 'search':
-							out = 3;
-							break;
-						case 'sort':
-							out = 98;
-							break;
-						case 'limit':
-							out = 99;
-							break;
-					}
-					return out;
-				});
-			}
-			if (this.hasFilter(commands) == false) {
-				commands.push({
-					'name' : 'all',
-					'operand' : '',
-					'params' : '' 
-				});
-			}
-			
-			return commands;
-		},
-
-		translateFieldName : function(field) {
-			switch (field) {
-				case "event_id":
-					return "id";
-				default:
-					return field;
-			}
-		},
-
-		processCommand : function(command, output) {
-			switch (command.name) {
-				case 'all':
-					return this.processCommandAll(output);
-				case 'original':
-					return this.processCommandOriginal(output);
-				case 'category_id':
-					return this.processCommandCategoryId(command.operand, command.params, output);
-				case 'event_id':
-					return this.processCommandEventId(command.operand, command.params, output);
-				case 'sort':
-					return this.processCommandSort(command.operand, command.params, output);
-				case 'limit':
-					return this.processCommandLimit(command.operand, command.params, output);
-			}
-		},
-
-		processCommandLimit: function(operand, params, dataset) {
-			var limit = parseInt(params.pop());
-			var filtered = [];
-
-			for (var i = 0; i < dataset.length; i++) {
-				if (i < limit) 
-					filtered.push(dataset[i]);
-			}
-			
-			return filtered;
-		},
-
-		processCommandAll : function(dataset) {
-			return dataset;
-		},
-
-		processCommandEventId : function(operand, params, dataset) {
-			this.applyFilter(this.translateFieldName("event_id"), operand, this.decodeParams(operand, params), dataset);
-		},
-
-		processCommandOriginal : function(dataset) {
-			if (lbo_previous.length > 0) {
-				return this.applyOriginalFilter(dataset);
-			} else {
-				return dataset;
-			}
-		},
-
-		processCommandCategoryId : function(operand, params, dataset) {	
-			return this.applyCategoryIdFilter(operand, this.decodeParams(operand, params), dataset);
-		},
-
-		processCommandSort : function(operand, params, output) {},
-
-		applyFilter : function(field, operand, params, dataset) {
-
-			var present = false;
-
-			for (var i = 0; i < dataset.length; i++) {				
-				
-				present = false;
-				dataset[i]["filter_" + field] = false;
-
-				for (var p = 0; p < params.length; p++) {	
-					if (String(dataset[i][field]) == String(params[p].value)) 
-						present = true;
-				}
-
-				if (present) 
-					dataset[i]["filter_" + field] = true;
-			}
-		},
-
-		applyCategoryIdFilter : function(operand, param, output) {
-
-			var filtered = [];
-			var found = false;
-			for (var i = 0; i < output.length; i++) {
-				for (var c = 0; c < output[i].categories.length; c++) {
-					found = false;
-					for (var p = 0; p < param.length; p++) {
-						if (output[i].categories[c] == param[p].value) {
-							found = true;
-						}
-					}
-					if (found)
-						filtered.push(output[i]);
-				}
-			}
-			
-			return filtered;
-		},
-
-		applyOriginalFilter : function(dataset) {
-
-			var filtered = [];
-			var found = false;
-			
-			for (var i = 0; i < dataset.length; i++) {
-				found = false;
-				for (var p = 0; p < lbo_previous.length; p++) {
-					if (dataset[i].id == lbo_previous[p].id) 
-						found = true;
-				}
-				if (found == false)
-					filtered.push(dataset[i]);
-			}
-			
-			return filtered;
-		},
-		
-		decodeParams : function(operand, params) {
-
-			var output = [];
-			var option = null;
-
-			for (var i = 0; i < params.length; i++) {
-				output.push({
-					'value' : params[i].replace(/\"/g, '').replace('!', ''),
-				});
-			}
-
-			return output;
-		},
-
-		convertDataSetToPerformance : function(dataset) {
-
-			var performances = [];
-			
-			for (var e = 0; e < dataset.length; e++) {
-				for (var p = 0; p < dataset[e].performances.length; p++) {
-					var performance = {};
-					
-					performance.title = dataset[e].title;
-					performance.image_large = dataset[e].image_large;
-					performance.teaser = dataset[e].teaser;
-					performance.start_date = dataset[e].performances[p].start_date;
-					performance.start_time = dataset[e].performances[p].start_time;
-					performance.link_book = dataset[e].link_book;
-
-					performances.push(performance);
-				}
-			}
-			
-			return performances;
-		}
-		
-	});
-}( jQuery ));
-
-(function ( $ ) {
-	$.extend($.fn.thelittleboxoffice, {
-
-		template : function(dataset, template_name) {
-			return this.bakeTemplate(
-				this.getTemplate(template_name), 
-				dataset
-			);
-		},
-
-		getTemplate : function(template_name) {
-			return templates["src/templates/" + template_name + ".html"];
-		},
-
-		bakeTemplate : function(template, dataset) {
-			return template(dataset);
-		}
-		
-	});
-}( jQuery ));
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
@@ -407,8 +129,6 @@ var lbo_previous = [];
 			var items_html = '';
 			var data_item = null;
 
-			console.log(dataset);
-
 			for (var i = 0; i < dataset.length; i++) {
 				data_item = dataset[i];
 				data_item.first = (i == 0) ? true : false;
@@ -426,12 +146,16 @@ var lbo_previous = [];
 		themeListEncode : function(dataset, options) {
 			
 			var html = '';
+
+			console.log(dataset);
+
 			for (var i = 0; i < dataset.length; i++) {
 				dataset[i].options = options;
 				html = html + $.fn.thelittleboxoffice.template(dataset[i], "list/list_item");
 			}
+
 			return html;
-		}		
+		}
 
 	});
 }( jQuery ));
@@ -439,25 +163,20 @@ var lbo_previous = [];
 	$.extend($.fn.thelittleboxoffice, {
 
 		themeSearchEncode : function(dataset, options) {
-			
-			var html = '';
-
-			var data = {
-				search_form : $.fn.thelittleboxoffice.template(null, "search/search_form")
-			}
-
-			html = html + $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
-
-			return html;
+			var data = { search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") };
+			return $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
 		},
 
 		themeSearchScript : function(options) {
 
 			// setup the datepicker
-			$('.lbo-search-datepicker').datetimepicker();
+			$('.lbo-search-datepicker').datetimepicker({
+				format : 'DD MMMM YYYY',
+				enabledDates : $.fn.thelittleboxoffice.themeSearchGetAvailableDates()
+			});
 
 			// setup the categories dropdown
-			var ele_categories = $('form[name="lbo-form-search"] select[name="category"]');
+			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
 			ele_categories.append('<option value="0"></option>');
 			for (var c = 0; c < lbo_categories.length; c++) {
 				ele_categories.append('<option value="' + lbo_categories[c].id + '">' + lbo_categories[c].title + '</option>');
@@ -472,29 +191,50 @@ var lbo_previous = [];
 				event.preventDefault();
 				return false;
 			});
+
+			// fire the search
+			$.fn.thelittleboxoffice.themeSearchExecuteSearch(options);
+		},
+
+		themeSearchGetAvailableDates : function(events) {
+
+			for (var e = 0; e < lbo_events.length; e++) {
+				for (var p = 0; p < lbo_events[e].performances[p]; p++) {
+					console.log(lbo_events[e].performances[p]);
+				}
+			}
 		},
 
 		themeSearchExecuteSearch : function(options) {
 			
 			var query = '';
 			var ele_results = $('.lbo-search-results');
-			var ele_categories = $('form[name="lbo-form-search"] select[name="category"]');
+			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
+			var categories = lbo_categories;
+			var ele_group = null;
+			var categories_id_string = '';
 
+			// wipe the target
 			ele_results.html('');
-			
-			if (ele_categories.val() > 0) 
-				query += 'category_id=' + ele_categories.val() + ';';
-			
-			console.log(query, ele_results);
 
+			// if categories have been selected recreate searched categories array
+			if (ele_categories.val() != null && ele_categories.val().length > 0) {
+				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
+			}
+
+			for (var c = 0; c < categories.length; c++) 
+				categories_id_string += (categories_id_string == '') ? categories[c].id : ',' + categories[c].id;
+			
 			$.fn.thelittleboxoffice.build({
-				query : query,
+				query : 'category_id=' + categories_id_string + ';group=categories',
 				target : ele_results,
-				theme : 'list',
-				item_class : 'card'
+				theme : 'list'
 			});
+			
+			// fire the change events
+			if (options.change != null)
+				options.change(categories);
 		}
-
 	});
 }( jQuery ));
 (function ( $ ) {
@@ -663,6 +403,368 @@ var lbo_previous = [];
 		}
 	});
 }( jQuery ));
+(function ( $ ) {
+	$.extend($.fn.thelittleboxoffice, {
+
+		apiGetCategoryByIds : function(category_ids) {
+
+			var out = new Array();
+
+			for (var i = 0; i < category_ids.length; i++) {
+				for (var c = 0; c < lbo_categories.length; c++) {
+					if (lbo_categories[c].id == category_ids[i]) 
+						out.push(lbo_categories[c]);
+				}
+			}
+
+			return out;
+		},
+
+		apiCategoriesToIdString : function(categories) {
+
+			var out = '';
+			for (var c = 0; c < categories.length; c++) {
+				if (out != '') out += ',';
+				out += categories[c].id;
+			}
+			return out;
+		}
+		
+	});
+}( jQuery ));
+var lbo_previous = [];
+
+(function ( $ ) {
+	$.extend($.fn.thelittleboxoffice, {
+
+		query : function(query, savePrevious) {
+			
+			console.log('query', query);
+
+			// clone the dataset and convert the commands to objects
+			var dataset = this.reCreateDataSet();
+			var commands = this.decodeCommands(query);
+			
+			// apply all the command in the query
+			for (var i = 0; i < commands.length; i++) {
+				dataset = this.processCommand(commands[i], dataset);
+				console.log('here', commands[i], dataset);
+			}
+
+			// add to the previous array
+			if (savePrevious === true)
+				this.addToPrevious(dataset);
+			
+			// return the rows highlighted for filtering
+			return dataset;
+		},
+
+		reCreateDataSet : function() {
+			output = this.createDataSet();
+			for (var i = 0; i < lbo_events.length; i++) 
+				output.data.push(lbo_events[i]);
+			return output;
+		},
+
+		cloneDataSet : function(dataset) {
+			return jQuery.extend(true, {}, dataset);
+		},
+
+		addToPrevious : function(filtered) {
+			for (var i = 0; i < filtered.data.length; i++)
+				lbo_previous.push(filtered[i]);
+		},
+
+		hasFilter : function(commands) {
+
+			var out = false;
+
+			for (var i = 0; i < commands.length; i++) {
+				if ($.inArray(commands[i].name, ["category_id", "event_id"])) 
+					out = true;
+			}
+
+			return out;
+		},
+
+		decodeCommands : function(query_string) {
+
+			var commands = [];
+			var query_array = [];
+			var alpha = null; 
+			var match = null;
+
+			if (query_string.length > 0) {
+				query_array = query_string.split(';');
+				for (var i = 0; i < query_array.length; i++) {
+					match = query_array[i].match(/([^A-Z_])/i);
+					if (match != null) {
+						alpha = match.index;	
+						commands.push({
+							'name' : query_array[i].substring(0, alpha),
+							'operand' : query_array[i].substring(alpha, alpha + 1),
+							'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
+						});
+					} 
+				}
+				commands.sort(function(a, b) {
+					var out = 9999;
+					switch (a.name) {
+						case 'original':
+							out = 0;
+						case 'category_id':
+							out = 1;
+							break;
+						case 'event_id':
+							out = 2
+							break;
+						case 'search':
+							out = 3;
+							break;
+						case 'sort':
+							out = 98;
+							break;
+						case 'group_a':
+							out = 99;
+							break;
+						case 'limit':
+							out = 100;
+							break;
+					}
+					return out;
+				});
+			}
+			if (this.hasFilter(commands) == false) {
+				commands.push({
+					'name' : 'all',
+					'operand' : '',
+					'params' : '' 
+				});
+			}
+			
+			return commands;
+		},
+
+		translateFieldName : function(field) {
+			switch (field) {
+				case "event_id":
+					return "id";
+				default:
+					return field;
+			
+			}
+		},
+
+		processCommand : function(command, output) {
+
+			switch (command.name) {
+				case 'all':
+					return this.processCommandAll(output);
+				case 'original':
+					return this.processCommandOriginal(output);
+				case 'category_id':
+					return this.processCommandCategoryId(command.operand, command.params, output);
+				case 'event_id':
+					return this.processCommandEventId(command.operand, command.params, output);
+				case 'sort':
+					return this.processCommandSort(command.operand, command.params, output);
+				case 'limit':
+					return this.processCommandLimit(command.operand, command.params, output);
+				case 'group':
+					return this.processCommandGroup(command.operand, command.params, output);
+			}
+		},
+
+		processCommandGroup : function(operand, params, dataset) {
+			if (params == 'categories') 
+				return this.processCommandGroupCategory(operand, params, dataset);
+		},
+
+		processCommandGroupCategory : function(operand, params, dataset) {
+
+			var out = jQuery.extend(true, {}, dataset);
+			out.data = [];
+			out.cursor_with_object_group = 'category';
+
+			for (var i = 0; i < dataset.data.length; i++) {
+				for (var c = 0; c < dataset.data[i].categories.length; c++) {
+
+					// make sure a group exists for this category
+					if (typeof out[dataset.data[i].categories[c]] == 'undefined') 
+						out.data[dataset.data[i].categories[c]] = new Array();
+					
+					// add the category
+					out.data[dataset.data[i].categories[c]].push(dataset.data[i]);
+				}
+			}
+			
+			return out;
+		},
+
+		createDataSet : function() {
+			return {
+				data : [],
+				cursor_with_object_group : false,
+			}
+		},
+
+		processCommandLimit : function(operand, params, dataset) {
+
+			var out = this.cloneDataSet(dataset);
+			out.data = [];
+			var limit = parseInt(params.pop());
+
+			for (var i = 0; i < dataset.data.length; i++) {
+				if (i < limit) 
+					filtered.data.push(dataset.data[i]);
+			}
+			
+			return filtered;
+		},
+
+		processCommandAll : function(dataset) {
+			return dataset;
+		},
+
+		processCommandEventId : function(operand, params, dataset) {
+			this.applyFilter(this.translateFieldName("event_id"), operand, this.decodeParams(operand, params), dataset);
+		},
+
+		processCommandOriginal : function(dataset) {
+			if (lbo_previous.length > 0) {
+				return this.applyOriginalFilter(dataset);
+			} else {
+				return dataset;
+			}
+		},
+
+		processCommandCategoryId : function(operand, params, dataset) {	
+			return this.applyCategoryIdFilter(operand, this.decodeParams(operand, params), dataset);
+		},
+
+		processCommandSort : function(operand, params, output) {},
+
+		applyFilter : function(field, operand, params, dataset) {
+
+			var present = false;
+
+			for (var i = 0; i < dataset.data.length; i++) {				
+				
+				present = false;
+				dataset.data[i]["filter_" + field] = false;
+
+				for (var p = 0; p < params.length; p++) {	
+					if (String(dataset.data[i][field]) == String(params[p].value)) 
+						present = true;
+				}
+
+				if (present) 
+					dataset.data[i]["filter_" + field] = true;
+			}
+		},
+
+		applyCategoryIdFilter : function(operand, param, dataset) {
+
+			var filtered = this.cloneDataSet(dataset);
+			var found = false;
+
+			filtered.data = [];
+
+			for (var i = 0; i < dataset.length; i++) {
+				for (var c = 0; c < dataset[i].categories.length; c++) {
+					found = false;
+					for (var p = 0; p < param.length; p++) {
+						if (dataset[i].categories[c] == param[p].value) {
+							found = true;
+						}
+					}
+					if (found)
+						filtered.data.push(dataset[i]);
+				}
+			}
+			
+			return filtered;
+		},
+
+		applyOriginalFilter : function(dataset) {
+
+			var filtered = this.cloneDataSet(dataset);
+			var found = false;
+
+			filtered.data = [];
+			
+			for (var i = 0; i < dataset.data.length; i++) {
+				found = false;
+				for (var p = 0; p < lbo_previous.length; p++) {
+					if (dataset.data[i].id == lbo_previous[p].id) 
+						found = true;
+				}
+				if (found == false)
+					filtered.push(dataset.data[i]);
+			}
+			
+			return filtered;
+		},
+		
+		decodeParams : function(operand, params) {
+
+			var output = [];
+			var option = null;
+
+			for (var i = 0; i < params.length; i++) {
+				output.push({
+					'value' : params[i].replace(/\"/g, '').replace('!', ''),
+				});
+			}
+
+			return output;
+		},
+
+		convertDataSetToPerformance : function(dataset) {
+
+			var performances = [];
+			
+			for (var e = 0; e < dataset.data.length; e++) {
+				for (var p = 0; p < dataset.data[e].performances.length; p++) {
+					var performance = {};
+					
+					performance.title = dataset.data[e].title;
+					performance.image_large = dataset.data[e].image_large;
+					performance.teaser = dataset.data[e].teaser;
+					performance.start_date = dataset.data[e].performances[p].start_date;
+					performance.start_time = dataset.data[e].performances[p].start_time;
+					performance.link_book = dataset.data[e].link_book;
+
+					performances.push(performance);
+				}
+			}
+			
+			return performances;
+		}
+		
+	});
+}( jQuery ));
+
+(function ( $ ) {
+	$.extend($.fn.thelittleboxoffice, {
+
+		template : function(dataset, template_name) {
+			return this.bakeTemplate(
+				this.getTemplate(template_name), 
+				dataset
+			);
+		},
+
+		getTemplate : function(template_name) {
+			return templates["src/templates/" + template_name + ".html"];
+		},
+
+		bakeTemplate : function(template, dataset) {
+			return template(dataset);
+		}
+		
+	});
+}( jQuery ));
 this["templates"] = this["templates"] || {};
 
 this["templates"]["src/templates/billboard/billboard_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
@@ -788,7 +890,19 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
 },"useData":true});
 
 this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category\" class=\"form-control\" placeholder=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+},"useData":true});
+
+this["templates"]["src/templates/search/search_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
+
+  return "<div class=\"lbo-search-group "
+    + alias3(((helper = (helper = helpers.group_class || (depth0 != null ? depth0.group_class : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"group_class","hash":{},"data":data}) : helper)))
+    + "\">\n	<h2>"
+    + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</h2>\n	<div id=\"lbo-search-group-content-"
+    + alias3(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\" class=\"lbo-search-group-content\"></div>\n</div>";
 },"useData":true});
 
 this["templates"]["src/templates/search/search_wrapper.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
