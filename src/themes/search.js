@@ -13,6 +13,9 @@
 				format : 'DD MMMM YYYY',
 				enabledDates : $.fn.thelittleboxoffice.themeSearchGetAvailableDates()
 			});
+			$('.lbo-search-datepicker').on("dp.change", function (e) {
+				$('form#lbo-form-search').submit();
+			});
 
 			// setup the categories dropdown
 			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
@@ -51,21 +54,22 @@
 			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
 			var categories = lbo_categories;
 			var ele_group = null;
-			var categories_id_string = '';
+			var categories_id_string = '';			
+			var search_date_string = '';
 
-			// wipe the target
 			ele_results.html('');
 
-			// if categories have been selected recreate searched categories array
-			if (ele_categories.val() != null && ele_categories.val().length > 0) {
+			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null) 
+				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
+			
+			if (ele_categories.val() != null && ele_categories.val().length > 0) 
 				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
-			}
 
 			for (var c = 0; c < categories.length; c++) 
 				categories_id_string += (categories_id_string == '') ? categories[c].id : ',' + categories[c].id;
 			
 			$.fn.thelittleboxoffice.build({
-				query : 'category_id=' + categories_id_string + ';group=categories',
+				query : 'category_id=' + categories_id_string + ';group_a=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list'
 			});

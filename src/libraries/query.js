@@ -5,22 +5,26 @@ var lbo_previous = [];
 
 		query : function(query, savePrevious) {
 			
-			console.log('query', query);
-
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
 			var commands = this.decodeCommands(query);
+
+			// check the query
+			if (this.checkQueryString(query) == true) {
+				
+				// apply all the command in the query
+				for (var i = 0; i < commands.length; i++) {
+					dataset = this.processCommand(commands[i], dataset);
+				}
+				
+				// add to the previous array
+				if (savePrevious === true)
+					this.addToPrevious(dataset);
 			
-			// apply all the command in the query
-			for (var i = 0; i < commands.length; i++) {
-				dataset = this.processCommand(commands[i], dataset);
-				console.log('here', commands[i], dataset);
 			}
 
-			// add to the previous array
-			if (savePrevious === true)
-				this.addToPrevious(dataset);
-			
+			console.log('Query executed - ', query, dataset);
+
 			// return the rows highlighted for filtering
 			return dataset;
 		},
@@ -53,6 +57,14 @@ var lbo_previous = [];
 			return out;
 		},
 
+		checkQueryString : function(query_string) {
+			if (query_string != '') {
+				if (query_string.trim().slice(-1) != ';') 
+					throw "Query does not end with a semicolon.";
+			}
+			return true;
+		},
+
 		decodeCommands : function(query_string) {
 
 			var commands = [];
@@ -73,32 +85,7 @@ var lbo_previous = [];
 						});
 					} 
 				}
-				commands.sort(function(a, b) {
-					var out = 9999;
-					switch (a.name) {
-						case 'original':
-							out = 0;
-						case 'category_id':
-							out = 1;
-							break;
-						case 'event_id':
-							out = 2
-							break;
-						case 'search':
-							out = 3;
-							break;
-						case 'sort':
-							out = 98;
-							break;
-						case 'group_a':
-							out = 99;
-							break;
-						case 'limit':
-							out = 100;
-							break;
-					}
-					return out;
-				});
+				commands = this.sortCommands(commands);
 			}
 			if (this.hasFilter(commands) == false) {
 				commands.push({
@@ -111,13 +98,46 @@ var lbo_previous = [];
 			return commands;
 		},
 
+		sortCommands : function(commands) {
+			commands.sort(function(a, b) {
+				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.command);
+				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.command);
+				if (a_sort_val > b_sort_val) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
+			return commands;
+		},
+
+		sortCommandValue : function(command_name) {
+			switch (command_name) {
+				case 'original':
+					return 0;
+				case 'category_id':
+					return 1;
+				case 'event_id':
+					return 2;
+				case 'start_date':
+					return 3;
+				case 'search':
+					return 3;
+				case 'sort':
+					return 98;
+				case 'group_a':
+					return 99;
+				case 'limit':
+					return 100;
+			}
+		},
+
 		translateFieldName : function(field) {
 			switch (field) {
 				case "event_id":
 					return "id";
 				default:
 					return field;
-			
 			}
 		},
 
@@ -136,31 +156,46 @@ var lbo_previous = [];
 					return this.processCommandSort(command.operand, command.params, output);
 				case 'limit':
 					return this.processCommandLimit(command.operand, command.params, output);
-				case 'group':
+				case 'group_a':
 					return this.processCommandGroup(command.operand, command.params, output);
 			}
 		},
 
 		processCommandGroup : function(operand, params, dataset) {
-			if (params == 'categories') 
+			if (params == 'category') 
 				return this.processCommandGroupCategory(operand, params, dataset);
 		},
 
 		processCommandGroupCategory : function(operand, params, dataset) {
 
 			var out = jQuery.extend(true, {}, dataset);
+			var category_allowed = true;
+
 			out.data = [];
 			out.cursor_with_object_group = 'category';
 
 			for (var i = 0; i < dataset.data.length; i++) {
 				for (var c = 0; c < dataset.data[i].categories.length; c++) {
 
+					category_allowed = true;
+
+					if (dataset.allowed_groups !== false) {
+						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) {
+							category_allowed = false;
+						}
+					}
+
 					// make sure a group exists for this category
-					if (typeof out[dataset.data[i].categories[c]] == 'undefined') 
-						out.data[dataset.data[i].categories[c]] = new Array();
-					
-					// add the category
-					out.data[dataset.data[i].categories[c]].push(dataset.data[i]);
+					if (category_allowed) {
+						if (typeof out.data[dataset.data[i].categories[c]] == 'undefined') {
+							out.data[dataset.data[i].categories[c]] = {
+								title : $.fn.thelittleboxoffice.apiGetCategoryById(dataset.data[i].categories[c]).title,
+								data : []
+							};
+						}
+						// add the category
+						out.data[dataset.data[i].categories[c]].data.push(dataset.data[i]);
+					}
 				}
 			}
 			
@@ -170,6 +205,7 @@ var lbo_previous = [];
 		createDataSet : function() {
 			return {
 				data : [],
+				allowed_groups : false,
 				cursor_with_object_group : false,
 			}
 		},
@@ -190,6 +226,10 @@ var lbo_previous = [];
 
 		processCommandAll : function(dataset) {
 			return dataset;
+		},
+
+		processCommandStartDate : function(dataset) {
+			console.log('WWooo yea!');
 		},
 
 		processCommandEventId : function(operand, params, dataset) {
@@ -235,17 +275,22 @@ var lbo_previous = [];
 			var found = false;
 
 			filtered.data = [];
+			filtered.allowed_groups = [];
 
-			for (var i = 0; i < dataset.length; i++) {
-				for (var c = 0; c < dataset[i].categories.length; c++) {
+			for (var p = 0; p < param.length; p++) {
+				filtered.allowed_groups.push(param[p].value);
+			}
+
+			for (var i = 0; i < dataset.data.length; i++) {
+				for (var c = 0; c < dataset.data[i].categories.length; c++) {
 					found = false;
 					for (var p = 0; p < param.length; p++) {
-						if (dataset[i].categories[c] == param[p].value) {
+						if (dataset.data[i].categories[c] == param[p].value) {
 							found = true;
 						}
 					}
 					if (found)
-						filtered.data.push(dataset[i]);
+						filtered.data.push(dataset.data[i]);
 				}
 			}
 			

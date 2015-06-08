@@ -129,10 +129,10 @@
 			var items_html = '';
 			var data_item = null;
 
-			for (var i = 0; i < dataset.length; i++) {
-				data_item = dataset[i];
+			for (var i = 0; i < dataset.data.length; i++) {
+				data_item = dataset.data[i];
 				data_item.first = (i == 0) ? true : false;
-				items_html = items_html + $.fn.thelittleboxoffice.template(dataset[i], "carousel/carousel_item");
+				items_html = items_html + $.fn.thelittleboxoffice.template(dataset.data[i], "carousel/carousel_item");
 			}
 
 			return $.fn.thelittleboxoffice.template({items_html: items_html}, "carousel/carousel_wrapper");
@@ -146,15 +146,33 @@
 		themeListEncode : function(dataset, options) {
 			
 			var html = '';
+			var html_group = '';
+			var i = null;
 
-			console.log(dataset);
-
-			for (var i = 0; i < dataset.length; i++) {
-				dataset[i].options = options;
-				html = html + $.fn.thelittleboxoffice.template(dataset[i], "list/list_item");
+			if (dataset.cursor_with_object_group === false) {
+				for (i = 0; i < dataset.length; i++) {
+					dataset.data[i].options = options;
+					html = html + $.fn.thelittleboxoffice.themeListItemEncode(dataset[i], options);
+				}
+			} else {
+				for (var index in dataset.data) {
+					html_group = '';
+					
+					for (i = 0; i < dataset.data[index].data.length; i++) 
+						html_group = html_group + $.fn.thelittleboxoffice.themeListItemEncode(dataset.data[index].data[i], options);
+					
+					html = html + $.fn.thelittleboxoffice.template({
+						title : dataset.data[index].title, 
+						content : html_group
+					}, "list/list_group");
+				}
 			}
 
 			return html;
+		},
+
+		themeListItemEncode : function(data_item, options) {
+			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
 		}
 
 	});
@@ -173,6 +191,9 @@
 			$('.lbo-search-datepicker').datetimepicker({
 				format : 'DD MMMM YYYY',
 				enabledDates : $.fn.thelittleboxoffice.themeSearchGetAvailableDates()
+			});
+			$('.lbo-search-datepicker').on("dp.change", function (e) {
+				$('form#lbo-form-search').submit();
 			});
 
 			// setup the categories dropdown
@@ -212,21 +233,22 @@
 			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
 			var categories = lbo_categories;
 			var ele_group = null;
-			var categories_id_string = '';
+			var categories_id_string = '';			
+			var search_date_string = '';
 
-			// wipe the target
 			ele_results.html('');
 
-			// if categories have been selected recreate searched categories array
-			if (ele_categories.val() != null && ele_categories.val().length > 0) {
+			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null) 
+				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
+			
+			if (ele_categories.val() != null && ele_categories.val().length > 0) 
 				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
-			}
 
 			for (var c = 0; c < categories.length; c++) 
 				categories_id_string += (categories_id_string == '') ? categories[c].id : ',' + categories[c].id;
 			
 			$.fn.thelittleboxoffice.build({
-				query : 'category_id=' + categories_id_string + ';group=categories',
+				query : 'category_id=' + categories_id_string + ';group_a=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list'
 			});
@@ -411,13 +433,18 @@
 			var out = new Array();
 
 			for (var i = 0; i < category_ids.length; i++) {
-				for (var c = 0; c < lbo_categories.length; c++) {
-					if (lbo_categories[c].id == category_ids[i]) 
-						out.push(lbo_categories[c]);
-				}
+				out.push($.fn.thelittleboxoffice.apiGetCategoryById(category_ids[i]));
 			}
 
 			return out;
+		},
+
+		apiGetCategoryById : function(category_id) {
+			for (var c = 0; c < lbo_categories.length; c++) {
+				if (lbo_categories[c].id == category_id) 
+					return lbo_categories[c];
+			}
+			return false;
 		},
 
 		apiCategoriesToIdString : function(categories) {
@@ -439,22 +466,26 @@ var lbo_previous = [];
 
 		query : function(query, savePrevious) {
 			
-			console.log('query', query);
-
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
 			var commands = this.decodeCommands(query);
+
+			// check the query
+			if (this.checkQueryString(query) == true) {
+				
+				// apply all the command in the query
+				for (var i = 0; i < commands.length; i++) {
+					dataset = this.processCommand(commands[i], dataset);
+				}
+				
+				// add to the previous array
+				if (savePrevious === true)
+					this.addToPrevious(dataset);
 			
-			// apply all the command in the query
-			for (var i = 0; i < commands.length; i++) {
-				dataset = this.processCommand(commands[i], dataset);
-				console.log('here', commands[i], dataset);
 			}
 
-			// add to the previous array
-			if (savePrevious === true)
-				this.addToPrevious(dataset);
-			
+			console.log('Query executed - ', query, dataset);
+
 			// return the rows highlighted for filtering
 			return dataset;
 		},
@@ -487,6 +518,14 @@ var lbo_previous = [];
 			return out;
 		},
 
+		checkQueryString : function(query_string) {
+			if (query_string != '') {
+				if (query_string.trim().slice(-1) != ';') 
+					throw "Query does not end with a semicolon.";
+			}
+			return true;
+		},
+
 		decodeCommands : function(query_string) {
 
 			var commands = [];
@@ -507,32 +546,7 @@ var lbo_previous = [];
 						});
 					} 
 				}
-				commands.sort(function(a, b) {
-					var out = 9999;
-					switch (a.name) {
-						case 'original':
-							out = 0;
-						case 'category_id':
-							out = 1;
-							break;
-						case 'event_id':
-							out = 2
-							break;
-						case 'search':
-							out = 3;
-							break;
-						case 'sort':
-							out = 98;
-							break;
-						case 'group_a':
-							out = 99;
-							break;
-						case 'limit':
-							out = 100;
-							break;
-					}
-					return out;
-				});
+				commands = this.sortCommands(commands);
 			}
 			if (this.hasFilter(commands) == false) {
 				commands.push({
@@ -545,13 +559,46 @@ var lbo_previous = [];
 			return commands;
 		},
 
+		sortCommands : function(commands) {
+			commands.sort(function(a, b) {
+				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.command);
+				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.command);
+				if (a_sort_val > b_sort_val) {
+					return 1;
+				} else {
+					return -1;
+				}
+			});
+			return commands;
+		},
+
+		sortCommandValue : function(command_name) {
+			switch (command_name) {
+				case 'original':
+					return 0;
+				case 'category_id':
+					return 1;
+				case 'event_id':
+					return 2;
+				case 'start_date':
+					return 3;
+				case 'search':
+					return 3;
+				case 'sort':
+					return 98;
+				case 'group_a':
+					return 99;
+				case 'limit':
+					return 100;
+			}
+		},
+
 		translateFieldName : function(field) {
 			switch (field) {
 				case "event_id":
 					return "id";
 				default:
 					return field;
-			
 			}
 		},
 
@@ -570,31 +617,46 @@ var lbo_previous = [];
 					return this.processCommandSort(command.operand, command.params, output);
 				case 'limit':
 					return this.processCommandLimit(command.operand, command.params, output);
-				case 'group':
+				case 'group_a':
 					return this.processCommandGroup(command.operand, command.params, output);
 			}
 		},
 
 		processCommandGroup : function(operand, params, dataset) {
-			if (params == 'categories') 
+			if (params == 'category') 
 				return this.processCommandGroupCategory(operand, params, dataset);
 		},
 
 		processCommandGroupCategory : function(operand, params, dataset) {
 
 			var out = jQuery.extend(true, {}, dataset);
+			var category_allowed = true;
+
 			out.data = [];
 			out.cursor_with_object_group = 'category';
 
 			for (var i = 0; i < dataset.data.length; i++) {
 				for (var c = 0; c < dataset.data[i].categories.length; c++) {
 
+					category_allowed = true;
+
+					if (dataset.allowed_groups !== false) {
+						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) {
+							category_allowed = false;
+						}
+					}
+
 					// make sure a group exists for this category
-					if (typeof out[dataset.data[i].categories[c]] == 'undefined') 
-						out.data[dataset.data[i].categories[c]] = new Array();
-					
-					// add the category
-					out.data[dataset.data[i].categories[c]].push(dataset.data[i]);
+					if (category_allowed) {
+						if (typeof out.data[dataset.data[i].categories[c]] == 'undefined') {
+							out.data[dataset.data[i].categories[c]] = {
+								title : $.fn.thelittleboxoffice.apiGetCategoryById(dataset.data[i].categories[c]).title,
+								data : []
+							};
+						}
+						// add the category
+						out.data[dataset.data[i].categories[c]].data.push(dataset.data[i]);
+					}
 				}
 			}
 			
@@ -604,6 +666,7 @@ var lbo_previous = [];
 		createDataSet : function() {
 			return {
 				data : [],
+				allowed_groups : false,
 				cursor_with_object_group : false,
 			}
 		},
@@ -624,6 +687,10 @@ var lbo_previous = [];
 
 		processCommandAll : function(dataset) {
 			return dataset;
+		},
+
+		processCommandStartDate : function(dataset) {
+			console.log('WWooo yea!');
 		},
 
 		processCommandEventId : function(operand, params, dataset) {
@@ -669,17 +736,22 @@ var lbo_previous = [];
 			var found = false;
 
 			filtered.data = [];
+			filtered.allowed_groups = [];
 
-			for (var i = 0; i < dataset.length; i++) {
-				for (var c = 0; c < dataset[i].categories.length; c++) {
+			for (var p = 0; p < param.length; p++) {
+				filtered.allowed_groups.push(param[p].value);
+			}
+
+			for (var i = 0; i < dataset.data.length; i++) {
+				for (var c = 0; c < dataset.data[i].categories.length; c++) {
 					found = false;
 					for (var p = 0; p < param.length; p++) {
-						if (dataset[i].categories[c] == param[p].value) {
+						if (dataset.data[i].categories[c] == param[p].value) {
 							found = true;
 						}
 					}
 					if (found)
-						filtered.data.push(dataset[i]);
+						filtered.data.push(dataset.data[i]);
 				}
 			}
 			
@@ -805,6 +877,16 @@ this["templates"]["src/templates/carousel/carousel_wrapper.html"] = Handlebars.t
   return "<div id=\"owl-example\" class=\"owl-carousel\">\n\n	<!-- Wrapper for slides -->\n	"
     + ((stack1 = ((helper = (helper = helpers.items_html || (depth0 != null ? depth0.items_html : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"items_html","hash":{},"data":data}) : helper))) != null ? stack1 : "")
     + "\n	\n	\n		\n</div>";
+},"useData":true});
+
+this["templates"]["src/templates/list/list_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
+    var stack1, helper, alias1=helpers.helperMissing, alias2="function";
+
+  return "<div class=\"group\">\n	<span class=\"title\">"
+    + this.escapeExpression(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</span>\n	<div class=\"content\">\n		"
+    + ((stack1 = ((helper = (helper = helpers.content || (depth0 != null ? depth0.content : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"content","hash":{},"data":data}) : helper))) != null ? stack1 : "")
+    + "\n	</div>\n</div>";
 },"useData":true});
 
 this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
