@@ -9,10 +9,13 @@
 			'theme' : 'billboard',
 			'item_class' : '',
 			'wrapper_class' : '',
-			'change' : null
+			'change' : null,
+			'complete' : null
   		},
 
 		build : function(options) {
+
+			console.log('Build requested - ', options);
 			
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
@@ -28,6 +31,10 @@
 			var script_function = $.fn.thelittleboxoffice.getScriptFunctionName(options.theme);
 			if ($.fn.thelittleboxoffice[script_function] != undefined) 
 				$.fn.thelittleboxoffice[script_function](options);
+
+			// run complete function if exists
+			if (options.complete != null) 
+				options.complete(dataset);
 		},
 		
 		listCategories : function(options) {

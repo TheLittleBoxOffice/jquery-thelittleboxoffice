@@ -9,10 +9,13 @@
 			'theme' : 'billboard',
 			'item_class' : '',
 			'wrapper_class' : '',
-			'change' : null
+			'change' : null,
+			'complete' : null
   		},
 
 		build : function(options) {
+
+			console.log('Build requested - ', options);
 			
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
@@ -28,6 +31,10 @@
 			var script_function = $.fn.thelittleboxoffice.getScriptFunctionName(options.theme);
 			if ($.fn.thelittleboxoffice[script_function] != undefined) 
 				$.fn.thelittleboxoffice[script_function](options);
+
+			// run complete function if exists
+			if (options.complete != null) 
+				options.complete(dataset);
 		},
 		
 		listCategories : function(options) {
@@ -150,12 +157,11 @@
 			var i = null;
 
 			if (dataset.cursor_with_object_group === false) {
-				for (i = 0; i < dataset.length; i++) {
-					dataset.data[i].options = options;
-					html = html + $.fn.thelittleboxoffice.themeListItemEncode(dataset[i], options);
-				}
+				for (i = 0; i < dataset.data.length; i++) 
+					html = html + $.fn.thelittleboxoffice.themeListItemEncode(dataset.data[i], options);
 			} else {
 				for (var index in dataset.data) {
+					
 					html_group = '';
 					
 					for (i = 0; i < dataset.data[index].data.length; i++) 
@@ -167,7 +173,7 @@
 					}, "list/list_group");
 				}
 			}
-
+			
 			return html;
 		},
 
@@ -188,13 +194,9 @@
 		themeSearchScript : function(options) {
 
 			// setup the datepicker
-			$('.lbo-search-datepicker').datetimepicker({
-				format : 'DD MMMM YYYY',
-				enabledDates : $.fn.thelittleboxoffice.themeSearchGetAvailableDates()
-			});
-			$('.lbo-search-datepicker').on("dp.change", function (e) {
-				$('form#lbo-form-search').submit();
-			});
+			// $('.lbo-search-datepicker').datetimepicker({
+			// 	format : 'DD MMMM YYYY',
+			// });
 
 			// setup the categories dropdown
 			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
@@ -217,13 +219,25 @@
 			$.fn.thelittleboxoffice.themeSearchExecuteSearch(options);
 		},
 
-		themeSearchGetAvailableDates : function(events) {
+		themeSearchDatePicker_Change : function (e) {
+			console.log('fired');
+			$('form#lbo-form-search').submit();
+		},
 
-			for (var e = 0; e < lbo_events.length; e++) {
-				for (var p = 0; p < lbo_events[e].performances[p]; p++) {
-					console.log(lbo_events[e].performances[p]);
-				}
+		themeSearchDatePickerUpdate : function(enabled_dates) {
+			
+			$('.lbo-search-datepicker').off("dp.change", $.fn.thelittleboxoffice.themeSearchDatePicker_Change);
+
+			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) {
+				$('.lbo-search-datepicker').data("DateTimePicker").destroy();
 			}
+
+			$('.lbo-search-datepicker').datetimepicker({
+				format : 'DD MMMM YYYY',
+				enabledDates : (enabled_dates === false) ? false : enabled_dates
+			});
+
+			$('.lbo-search-datepicker').on("dp.change", $.fn.thelittleboxoffice.themeSearchDatePicker_Change);
 		},
 
 		themeSearchExecuteSearch : function(options) {
@@ -238,24 +252,32 @@
 
 			ele_results.html('');
 
-			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null) 
-				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
-			
+			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
+
 			if (ele_categories.val() != null && ele_categories.val().length > 0) 
 				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
 
 			for (var c = 0; c < categories.length; c++) 
 				categories_id_string += (categories_id_string == '') ? categories[c].id : ',' + categories[c].id;
 			
+			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null) 
+				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
+
 			$.fn.thelittleboxoffice.build({
 				query : 'category_id=' + categories_id_string + ';group_a=category;' + search_date_string,
 				target : ele_results,
-				theme : 'list'
+				theme : 'list',
+				complete : function(dataset) {
+					$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(
+						$.fn.thelittleboxoffice.query('category_id=' + categories_id_string + ';group_a=category;').available_dates
+					);
+				}
 			});
 			
 			// fire the change events
 			if (options.change != null)
 				options.change(categories);
+
 		}
 	});
 }( jQuery ));
@@ -476,6 +498,7 @@ var lbo_previous = [];
 				// apply all the command in the query
 				for (var i = 0; i < commands.length; i++) {
 					dataset = this.processCommand(commands[i], dataset);
+					//console.log(commands[i], dataset);
 				}
 				
 				// add to the previous array
@@ -484,7 +507,8 @@ var lbo_previous = [];
 			
 			}
 
-			console.log('Query executed - ', query, dataset);
+			// figure out what performance dates are available
+			dataset.available_dates = this.getAvailableDates(dataset);
 
 			// return the rows highlighted for filtering
 			return dataset;
@@ -561,8 +585,8 @@ var lbo_previous = [];
 
 		sortCommands : function(commands) {
 			commands.sort(function(a, b) {
-				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.command);
-				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.command);
+				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.name);
+				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.name);
 				if (a_sort_val > b_sort_val) {
 					return 1;
 				} else {
@@ -580,10 +604,10 @@ var lbo_previous = [];
 					return 1;
 				case 'event_id':
 					return 2;
-				case 'start_date':
-					return 3;
 				case 'search':
 					return 3;
+				case 'start_date':
+					return 4;
 				case 'sort':
 					return 98;
 				case 'group_a':
@@ -602,6 +626,33 @@ var lbo_previous = [];
 			}
 		},
 
+		getAvailableDates : function(dataset) {
+			var out = [];
+			var raw = [];
+
+			if (dataset.cursor_with_object_group != false) {
+				for (var g in dataset.data) {
+					for (var e in dataset.data[g].data) {
+						for (var p in dataset.data[g].data[e].performances) {
+							raw[dataset.data[g].data[e].performances[p].start_date.replace(/-/gi, "")] = 
+								dataset.data[g].data[e].performances[p].start_date;
+						}
+					}
+				}
+			} else {
+				for (var e in dataset.data) {
+					for (var p in dataset.data[e].performances) {
+						raw[dataset.data[e].performances[p].start_date.replace(/-/gi, "")] = 
+							dataset.data[e].performances[p].start_date;
+					}
+				}
+			}
+			for (var r in raw) {
+				out.push(raw[r]);
+			}
+			return out;
+		},
+
 		processCommand : function(command, output) {
 
 			switch (command.name) {
@@ -611,6 +662,8 @@ var lbo_previous = [];
 					return this.processCommandOriginal(output);
 				case 'category_id':
 					return this.processCommandCategoryId(command.operand, command.params, output);
+				case 'start_date':
+					return this.processCommandStartDate(command.operand, command.params, output);
 				case 'event_id':
 					return this.processCommandEventId(command.operand, command.params, output);
 				case 'sort':
@@ -640,10 +693,11 @@ var lbo_previous = [];
 
 					category_allowed = true;
 
+					// if also searching by category exlude other categories that 
+					// these events are in
 					if (dataset.allowed_groups !== false) {
-						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) {
+						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) 
 							category_allowed = false;
-						}
 					}
 
 					// make sure a group exists for this category
@@ -665,7 +719,9 @@ var lbo_previous = [];
 
 		createDataSet : function() {
 			return {
+				query : '',
 				data : [],
+				available_dates : [],
 				allowed_groups : false,
 				cursor_with_object_group : false,
 			}
@@ -689,8 +745,20 @@ var lbo_previous = [];
 			return dataset;
 		},
 
-		processCommandStartDate : function(dataset) {
-			console.log('WWooo yea!');
+		processCommandStartDate : function(operand, params, dataset) {
+			var out = this.cloneDataSet(dataset);
+			out.data = [];
+			
+			for (var e = 0; e < dataset.data.length; e++) {
+				for (var p = 0; p < dataset.data[e].performances.length; p++) {
+					if (dataset.data[e].performances[p].start_date == params[0]) {
+						out.data.push(dataset.data[e]);
+						break;
+					}
+				}
+			}
+
+			return out;
 		},
 
 		processCommandEventId : function(operand, params, dataset) {
@@ -733,25 +801,25 @@ var lbo_previous = [];
 		applyCategoryIdFilter : function(operand, param, dataset) {
 
 			var filtered = this.cloneDataSet(dataset);
-			var found = false;
+			var found = [];
 
 			filtered.data = [];
 			filtered.allowed_groups = [];
 
-			for (var p = 0; p < param.length; p++) {
+			for (var p = 0; p < param.length; p++) 
 				filtered.allowed_groups.push(param[p].value);
-			}
 
 			for (var i = 0; i < dataset.data.length; i++) {
 				for (var c = 0; c < dataset.data[i].categories.length; c++) {
-					found = false;
 					for (var p = 0; p < param.length; p++) {
 						if (dataset.data[i].categories[c] == param[p].value) {
-							found = true;
+							if (found.indexOf(dataset.data[i].id) == -1) {
+								filtered.data.push(dataset.data[i]);
+								found.push(dataset.data[i].id);						
+							}
+							break;
 						}
 					}
-					if (found)
-						filtered.data.push(dataset.data[i]);
 				}
 			}
 			

@@ -8,12 +8,11 @@
 			var i = null;
 
 			if (dataset.cursor_with_object_group === false) {
-				for (i = 0; i < dataset.length; i++) {
-					dataset.data[i].options = options;
-					html = html + $.fn.thelittleboxoffice.themeListItemEncode(dataset[i], options);
-				}
+				for (i = 0; i < dataset.data.length; i++) 
+					html = html + $.fn.thelittleboxoffice.themeListItemEncode(dataset.data[i], options);
 			} else {
 				for (var index in dataset.data) {
+					
 					html_group = '';
 					
 					for (i = 0; i < dataset.data[index].data.length; i++) 
@@ -25,7 +24,7 @@
 					}, "list/list_group");
 				}
 			}
-
+			
 			return html;
 		},
 

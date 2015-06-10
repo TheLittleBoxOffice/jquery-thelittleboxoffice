@@ -15,6 +15,7 @@ var lbo_previous = [];
 				// apply all the command in the query
 				for (var i = 0; i < commands.length; i++) {
 					dataset = this.processCommand(commands[i], dataset);
+					//console.log(commands[i], dataset);
 				}
 				
 				// add to the previous array
@@ -23,7 +24,8 @@ var lbo_previous = [];
 			
 			}
 
-			console.log('Query executed - ', query, dataset);
+			// figure out what performance dates are available
+			dataset.available_dates = this.getAvailableDates(dataset);
 
 			// return the rows highlighted for filtering
 			return dataset;
@@ -100,8 +102,8 @@ var lbo_previous = [];
 
 		sortCommands : function(commands) {
 			commands.sort(function(a, b) {
-				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.command);
-				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.command);
+				var a_sort_val = $.fn.thelittleboxoffice.sortCommandValue(a.name);
+				var b_sort_val = $.fn.thelittleboxoffice.sortCommandValue(b.name);
 				if (a_sort_val > b_sort_val) {
 					return 1;
 				} else {
@@ -119,10 +121,10 @@ var lbo_previous = [];
 					return 1;
 				case 'event_id':
 					return 2;
-				case 'start_date':
-					return 3;
 				case 'search':
 					return 3;
+				case 'start_date':
+					return 4;
 				case 'sort':
 					return 98;
 				case 'group_a':
@@ -141,6 +143,33 @@ var lbo_previous = [];
 			}
 		},
 
+		getAvailableDates : function(dataset) {
+			var out = [];
+			var raw = [];
+
+			if (dataset.cursor_with_object_group != false) {
+				for (var g in dataset.data) {
+					for (var e in dataset.data[g].data) {
+						for (var p in dataset.data[g].data[e].performances) {
+							raw[dataset.data[g].data[e].performances[p].start_date.replace(/-/gi, "")] = 
+								dataset.data[g].data[e].performances[p].start_date;
+						}
+					}
+				}
+			} else {
+				for (var e in dataset.data) {
+					for (var p in dataset.data[e].performances) {
+						raw[dataset.data[e].performances[p].start_date.replace(/-/gi, "")] = 
+							dataset.data[e].performances[p].start_date;
+					}
+				}
+			}
+			for (var r in raw) {
+				out.push(raw[r]);
+			}
+			return out;
+		},
+
 		processCommand : function(command, output) {
 
 			switch (command.name) {
@@ -150,6 +179,8 @@ var lbo_previous = [];
 					return this.processCommandOriginal(output);
 				case 'category_id':
 					return this.processCommandCategoryId(command.operand, command.params, output);
+				case 'start_date':
+					return this.processCommandStartDate(command.operand, command.params, output);
 				case 'event_id':
 					return this.processCommandEventId(command.operand, command.params, output);
 				case 'sort':
@@ -179,10 +210,11 @@ var lbo_previous = [];
 
 					category_allowed = true;
 
+					// if also searching by category exlude other categories that 
+					// these events are in
 					if (dataset.allowed_groups !== false) {
-						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) {
+						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) 
 							category_allowed = false;
-						}
 					}
 
 					// make sure a group exists for this category
@@ -204,7 +236,9 @@ var lbo_previous = [];
 
 		createDataSet : function() {
 			return {
+				query : '',
 				data : [],
+				available_dates : [],
 				allowed_groups : false,
 				cursor_with_object_group : false,
 			}
@@ -228,8 +262,20 @@ var lbo_previous = [];
 			return dataset;
 		},
 
-		processCommandStartDate : function(dataset) {
-			console.log('WWooo yea!');
+		processCommandStartDate : function(operand, params, dataset) {
+			var out = this.cloneDataSet(dataset);
+			out.data = [];
+			
+			for (var e = 0; e < dataset.data.length; e++) {
+				for (var p = 0; p < dataset.data[e].performances.length; p++) {
+					if (dataset.data[e].performances[p].start_date == params[0]) {
+						out.data.push(dataset.data[e]);
+						break;
+					}
+				}
+			}
+
+			return out;
 		},
 
 		processCommandEventId : function(operand, params, dataset) {
@@ -272,25 +318,25 @@ var lbo_previous = [];
 		applyCategoryIdFilter : function(operand, param, dataset) {
 
 			var filtered = this.cloneDataSet(dataset);
-			var found = false;
+			var found = [];
 
 			filtered.data = [];
 			filtered.allowed_groups = [];
 
-			for (var p = 0; p < param.length; p++) {
+			for (var p = 0; p < param.length; p++) 
 				filtered.allowed_groups.push(param[p].value);
-			}
 
 			for (var i = 0; i < dataset.data.length; i++) {
 				for (var c = 0; c < dataset.data[i].categories.length; c++) {
-					found = false;
 					for (var p = 0; p < param.length; p++) {
 						if (dataset.data[i].categories[c] == param[p].value) {
-							found = true;
+							if (found.indexOf(dataset.data[i].id) == -1) {
+								filtered.data.push(dataset.data[i]);
+								found.push(dataset.data[i].id);						
+							}
+							break;
 						}
 					}
-					if (found)
-						filtered.data.push(dataset.data[i]);
 				}
 			}
 			
