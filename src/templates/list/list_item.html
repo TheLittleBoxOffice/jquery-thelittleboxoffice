@@ -1,10 +1,17 @@
 
 	<div class="lbo-list-item {{options.item_class}}">
-		{{#if image_small}}
-		<div class="lbo-crop">
-			<img src="{{image_small}}" alt="{{title}}"/>
-		</div>
-		{{/if}}
-		<a href="{{link_view}}" class="lbo-title">{{title}}</a>
-		<div class="paragraph-end details-light"></div>
+		<a href="{{link_view}}" class="lbo-title">
+			{{#if image_small}}
+			<div class="lbo-crop">
+				<img src="{{image_large}}" alt="{{title}}"/>
+			</div>
+			{{/if}}
+			<div class="lbo-list-item-title">{{title}}</div>
+			<div class="lbo-list-item-date-summary">{{first_performance.start_date}} - {{last_performance.start_date}}</div>
+			<div class="lbo-list-item-controls">
+				<button class="lbo-list-item-btn-performances" type="button" class="btn btn-xs btn-primary" data-event-id="{{id}}">
+					<span class="glyphicon glyphicon-calendar"></span>
+				</button>
+			</div>
+		</a>
 	</div>

@@ -29,8 +29,12 @@
 		},
 
 		themeListItemEncode : function(data_item, options) {
+			data_item.options = options;
+
+			data_item.first_performance = data_item.performances[0];
+			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
+
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
 		}
-
 	});
 }( jQuery ));

@@ -9,13 +9,11 @@
 			'theme' : 'billboard',
 			'item_class' : '',
 			'wrapper_class' : '',
-			'change' : null,
+			'search_change' : null,
 			'complete' : null
   		},
 
 		build : function(options) {
-
-			console.log('Build requested - ', options);
 			
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
@@ -35,6 +33,8 @@
 			// run complete function if exists
 			if (options.complete != null) 
 				options.complete(dataset);
+
+			return dataset;
 		},
 		
 		listCategories : function(options) {

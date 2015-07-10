@@ -9,13 +9,11 @@
 			'theme' : 'billboard',
 			'item_class' : '',
 			'wrapper_class' : '',
-			'change' : null,
+			'search_change' : null,
 			'complete' : null
   		},
 
 		build : function(options) {
-
-			console.log('Build requested - ', options);
 			
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
@@ -35,6 +33,8 @@
 			// run complete function if exists
 			if (options.complete != null) 
 				options.complete(dataset);
+
+			return dataset;
 		},
 		
 		listCategories : function(options) {
@@ -178,34 +178,46 @@
 		},
 
 		themeListItemEncode : function(data_item, options) {
+			data_item.options = options;
+
+			data_item.first_performance = data_item.performances[0];
+			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
+
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
 		}
-
 	});
 }( jQuery ));
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
+		themeSearchTextTimerId : null,
+
 		themeSearchEncode : function(dataset, options) {
 			var data = { search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") };
+
 			return $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
 		},
 
 		themeSearchScript : function(options) {
 
-			// setup the datepicker
-			// $('.lbo-search-datepicker').datetimepicker({
-			// 	format : 'DD MMMM YYYY',
-			// });
+			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
+			var ele_search = $('form[name="lbo-form-search"] input[name="search"]');
 
 			// setup the categories dropdown
-			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
 			ele_categories.append('<option value="0"></option>');
 			for (var c = 0; c < lbo_categories.length; c++) {
 				ele_categories.append('<option value="' + lbo_categories[c].id + '">' + lbo_categories[c].title + '</option>');
 			}
 			ele_categories.change(function() {
 				$('form#lbo-form-search').submit();
+			});
+
+			// handle the text search
+			$('input[name="search"]').keyup(function() {
+				clearTimeout($.fn.thelittleboxoffice.themeSearchTextTimerId);
+				$.fn.thelittleboxoffice.themeSearchTextTimerId = setTimeout(function() {
+					$.fn.thelittleboxoffice.themeSearchExecuteSearch(options);
+				}, 200);
 			});
 
 			// setup the form
@@ -220,12 +232,11 @@
 		},
 
 		themeSearchDatePicker_Change : function (e) {
-			console.log('fired');
 			$('form#lbo-form-search').submit();
 		},
 
 		themeSearchDatePickerUpdate : function(enabled_dates) {
-			
+
 			$('.lbo-search-datepicker').off("dp.change", $.fn.thelittleboxoffice.themeSearchDatePicker_Change);
 
 			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) {
@@ -241,46 +252,57 @@
 		},
 
 		themeSearchExecuteSearch : function(options) {
-			
+
 			var query = '';
 			var ele_results = $('.lbo-search-results');
 			var ele_categories = $('form[name="lbo-form-search"] select[name="category[]"]');
 			var categories = lbo_categories;
 			var ele_group = null;
-			var categories_id_string = '';			
+			var categories_id_string = '';
 			var search_date_string = '';
+			var search_string = $('input[name="search"]').val();
 
 			ele_results.html('');
 
 			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
 
-			if (ele_categories.val() != null && ele_categories.val().length > 0) 
+			if (ele_categories.val() != null && ele_categories.val().length > 0)
 				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
 
-			for (var c = 0; c < categories.length; c++) 
+			for (var c = 0; c < categories.length; c++)
 				categories_id_string += (categories_id_string == '') ? categories[c].id : ',' + categories[c].id;
-			
-			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null) 
+
+			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
-			$.fn.thelittleboxoffice.build({
-				query : 'category_id=' + categories_id_string + ';group_a=category;' + search_date_string,
+			var dataset = $.fn.thelittleboxoffice.build({
+				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list',
+				item_class : options.item_class,
 				complete : function(dataset) {
 					$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(
-						$.fn.thelittleboxoffice.query('category_id=' + categories_id_string + ';group_a=category;').available_dates
+						$.fn.thelittleboxoffice.query('search=' + search_string + ';category_id=' + categories_id_string + ';group=category;order_desc=count desc;').available_dates
 					);
 				}
 			});
-			
-			// fire the change events
-			if (options.change != null)
-				options.change(categories);
 
+			$('.lbo-list-item-btn-performances').each(function(index, value) {
+				$(value).click(function(event) {
+
+					console.log($(value).data("event-id"));
+
+					event.preventDefault();
+				});
+			});
+
+			// fire the change events
+			if (options.search_change != null)
+				options.search_change(dataset, categories);
 		}
 	});
 }( jQuery ));
+
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
@@ -487,36 +509,36 @@ var lbo_previous = [];
 	$.extend($.fn.thelittleboxoffice, {
 
 		query : function(query, savePrevious) {
-			
+
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
 			var commands = this.decodeCommands(query);
 
 			// check the query
 			if (this.checkQueryString(query) == true) {
-				
+
 				// apply all the command in the query
 				for (var i = 0; i < commands.length; i++) {
 					dataset = this.processCommand(commands[i], dataset);
-					//console.log(commands[i], dataset);
+					// console.log(commands[i], dataset);
 				}
-				
+
 				// add to the previous array
 				if (savePrevious === true)
 					this.addToPrevious(dataset);
-			
 			}
 
 			// figure out what performance dates are available
 			dataset.available_dates = this.getAvailableDates(dataset);
 
 			// return the rows highlighted for filtering
+			//console.log(query, dataset);
 			return dataset;
 		},
 
 		reCreateDataSet : function() {
 			output = this.createDataSet();
-			for (var i = 0; i < lbo_events.length; i++) 
+			for (var i = 0; i < lbo_events.length; i++)
 				output.data.push(lbo_events[i]);
 			return output;
 		},
@@ -535,7 +557,7 @@ var lbo_previous = [];
 			var out = false;
 
 			for (var i = 0; i < commands.length; i++) {
-				if ($.inArray(commands[i].name, ["category_id", "event_id"])) 
+				if ($.inArray(commands[i].name, ["category_id", "event_id"]))
 					out = true;
 			}
 
@@ -544,7 +566,7 @@ var lbo_previous = [];
 
 		checkQueryString : function(query_string) {
 			if (query_string != '') {
-				if (query_string.trim().slice(-1) != ';') 
+				if (query_string.trim().slice(-1) != ';')
 					throw "Query does not end with a semicolon.";
 			}
 			return true;
@@ -554,7 +576,7 @@ var lbo_previous = [];
 
 			var commands = [];
 			var query_array = [];
-			var alpha = null; 
+			var alpha = null;
 			var match = null;
 
 			if (query_string.length > 0) {
@@ -562,13 +584,13 @@ var lbo_previous = [];
 				for (var i = 0; i < query_array.length; i++) {
 					match = query_array[i].match(/([^A-Z_])/i);
 					if (match != null) {
-						alpha = match.index;	
+						alpha = match.index;
 						commands.push({
 							'name' : query_array[i].substring(0, alpha),
 							'operand' : query_array[i].substring(alpha, alpha + 1),
-							'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',') 
+							'params' : query_array[i].substring(alpha + 1, query_array[i].length).split(',')
 						});
-					} 
+					}
 				}
 				commands = this.sortCommands(commands);
 			}
@@ -576,10 +598,10 @@ var lbo_previous = [];
 				commands.push({
 					'name' : 'all',
 					'operand' : '',
-					'params' : '' 
+					'params' : ''
 				});
 			}
-			
+
 			return commands;
 		},
 
@@ -608,12 +630,16 @@ var lbo_previous = [];
 					return 3;
 				case 'start_date':
 					return 4;
-				case 'sort':
-					return 98;
-				case 'group_a':
-					return 99;
 				case 'limit':
 					return 100;
+				case 'sort':
+					return 98;
+				case 'group':
+					return 99;
+				case 'order_asc':
+					return 100;
+				case 'order_desc':
+					return 101;
 			}
 		},
 
@@ -634,7 +660,7 @@ var lbo_previous = [];
 				for (var g in dataset.data) {
 					for (var e in dataset.data[g].data) {
 						for (var p in dataset.data[g].data[e].performances) {
-							raw[dataset.data[g].data[e].performances[p].start_date.replace(/-/gi, "")] = 
+							raw[dataset.data[g].data[e].performances[p].start_date.replace(/-/gi, "")] =
 								dataset.data[g].data[e].performances[p].start_date;
 						}
 					}
@@ -642,7 +668,7 @@ var lbo_previous = [];
 			} else {
 				for (var e in dataset.data) {
 					for (var p in dataset.data[e].performances) {
-						raw[dataset.data[e].performances[p].start_date.replace(/-/gi, "")] = 
+						raw[dataset.data[e].performances[p].start_date.replace(/-/gi, "")] =
 							dataset.data[e].performances[p].start_date;
 					}
 				}
@@ -670,13 +696,60 @@ var lbo_previous = [];
 					return this.processCommandSort(command.operand, command.params, output);
 				case 'limit':
 					return this.processCommandLimit(command.operand, command.params, output);
-				case 'group_a':
+				case 'group':
 					return this.processCommandGroup(command.operand, command.params, output);
+				case 'search':
+					return this.processCommandSearch(command.operand, command.params, output);
+				case 'order_asc':
+					return this.processCommandOrder(command.operand, command.params, output, 'asc');
+				case 'order_desc':
+					return this.processCommandOrder(command.operand, command.params, output, 'desc');
 			}
 		},
 
+		processCommandOrder : function(operand, params, dataset, direction) {
+
+			var data_clone = jQuery.extend(true, {}, dataset).data;
+			var ordered = null;
+
+			if (direction == 'asc') {
+				var ordered = JSLINQ(data_clone).OrderBy(function(item) {
+					return item.count;
+				});
+			} else {
+				var ordered = JSLINQ(data_clone).OrderByDescending(function(item) {
+					return item.count;
+				});
+			}
+
+			var filtered = [];
+			for (var key in ordered.items) {
+				if (ordered.items[key] != undefined) {
+					filtered.push(ordered.items[key]);
+				}
+			}
+
+			dataset.data = filtered;
+
+			return dataset;
+		},
+
+		processCommandSearch : function(operand, params, dataset) {
+
+			var out = jQuery.extend(true, {}, dataset);
+
+			if (params[0] != '') {
+				out.data = [];
+				for (var i = 0; i < dataset.data.length; i++) {
+					if (dataset.data[i].title.toLowerCase().indexOf(params[0].toLowerCase()) > -1)
+						out.data.push(dataset.data[i]);
+				}
+			}
+			return out;
+		},
+
 		processCommandGroup : function(operand, params, dataset) {
-			if (params == 'category') 
+			if (params == 'category')
 				return this.processCommandGroupCategory(operand, params, dataset);
 		},
 
@@ -693,10 +766,10 @@ var lbo_previous = [];
 
 					category_allowed = true;
 
-					// if also searching by category exlude other categories that 
+					// if also searching by category exlude other categories that
 					// these events are in
 					if (dataset.allowed_groups !== false) {
-						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1) 
+						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1)
 							category_allowed = false;
 					}
 
@@ -705,15 +778,17 @@ var lbo_previous = [];
 						if (typeof out.data[dataset.data[i].categories[c]] == 'undefined') {
 							out.data[dataset.data[i].categories[c]] = {
 								title : $.fn.thelittleboxoffice.apiGetCategoryById(dataset.data[i].categories[c]).title,
-								data : []
+								data : [],
+								count : 0
 							};
 						}
 						// add the category
 						out.data[dataset.data[i].categories[c]].data.push(dataset.data[i]);
+						out.data[dataset.data[i].categories[c]].count = out.data[dataset.data[i].categories[c]].data.length;
 					}
 				}
 			}
-			
+
 			return out;
 		},
 
@@ -734,10 +809,10 @@ var lbo_previous = [];
 			var limit = parseInt(params.pop());
 
 			for (var i = 0; i < dataset.data.length; i++) {
-				if (i < limit) 
+				if (i < limit)
 					filtered.data.push(dataset.data[i]);
 			}
-			
+
 			return filtered;
 		},
 
@@ -748,7 +823,7 @@ var lbo_previous = [];
 		processCommandStartDate : function(operand, params, dataset) {
 			var out = this.cloneDataSet(dataset);
 			out.data = [];
-			
+
 			for (var e = 0; e < dataset.data.length; e++) {
 				for (var p = 0; p < dataset.data[e].performances.length; p++) {
 					if (dataset.data[e].performances[p].start_date == params[0]) {
@@ -773,7 +848,7 @@ var lbo_previous = [];
 			}
 		},
 
-		processCommandCategoryId : function(operand, params, dataset) {	
+		processCommandCategoryId : function(operand, params, dataset) {
 			return this.applyCategoryIdFilter(operand, this.decodeParams(operand, params), dataset);
 		},
 
@@ -783,17 +858,17 @@ var lbo_previous = [];
 
 			var present = false;
 
-			for (var i = 0; i < dataset.data.length; i++) {				
-				
+			for (var i = 0; i < dataset.data.length; i++) {
+
 				present = false;
 				dataset.data[i]["filter_" + field] = false;
 
-				for (var p = 0; p < params.length; p++) {	
-					if (String(dataset.data[i][field]) == String(params[p].value)) 
+				for (var p = 0; p < params.length; p++) {
+					if (String(dataset.data[i][field]) == String(params[p].value))
 						present = true;
 				}
 
-				if (present) 
+				if (present)
 					dataset.data[i]["filter_" + field] = true;
 			}
 		},
@@ -806,7 +881,7 @@ var lbo_previous = [];
 			filtered.data = [];
 			filtered.allowed_groups = [];
 
-			for (var p = 0; p < param.length; p++) 
+			for (var p = 0; p < param.length; p++)
 				filtered.allowed_groups.push(param[p].value);
 
 			for (var i = 0; i < dataset.data.length; i++) {
@@ -815,14 +890,14 @@ var lbo_previous = [];
 						if (dataset.data[i].categories[c] == param[p].value) {
 							if (found.indexOf(dataset.data[i].id) == -1) {
 								filtered.data.push(dataset.data[i]);
-								found.push(dataset.data[i].id);						
+								found.push(dataset.data[i].id);
 							}
 							break;
 						}
 					}
 				}
 			}
-			
+
 			return filtered;
 		},
 
@@ -832,20 +907,20 @@ var lbo_previous = [];
 			var found = false;
 
 			filtered.data = [];
-			
+
 			for (var i = 0; i < dataset.data.length; i++) {
 				found = false;
 				for (var p = 0; p < lbo_previous.length; p++) {
-					if (dataset.data[i].id == lbo_previous[p].id) 
+					if (dataset.data[i].id == lbo_previous[p].id)
 						found = true;
 				}
 				if (found == false)
 					filtered.push(dataset.data[i]);
 			}
-			
+
 			return filtered;
 		},
-		
+
 		decodeParams : function(operand, params) {
 
 			var output = [];
@@ -863,11 +938,11 @@ var lbo_previous = [];
 		convertDataSetToPerformance : function(dataset) {
 
 			var performances = [];
-			
+
 			for (var e = 0; e < dataset.data.length; e++) {
 				for (var p = 0; p < dataset.data[e].performances.length; p++) {
 					var performance = {};
-					
+
 					performance.title = dataset.data[e].title;
 					performance.image_large = dataset.data[e].image_large;
 					performance.teaser = dataset.data[e].teaser;
@@ -878,12 +953,200 @@ var lbo_previous = [];
 					performances.push(performance);
 				}
 			}
-			
+
 			return performances;
 		}
-		
+
 	});
 }( jQuery ));
+
+//-----------------------------------------------------------------------
+// Part of the LINQ to JavaScript (JSLINQ) v2.10 Project - http://jslinq.codeplex.com
+// Copyright (C) 2009 Chris Pietschmann (http://pietschsoft.com). All rights reserved.
+// This project is licensed under the Microsoft Reciprocal License (Ms-RL)
+// This license can be found here: http://jslinq.codeplex.com/license
+//-----------------------------------------------------------------------
+(function() {
+    JSLINQ = window.JSLINQ = function(dataItems) {
+        return new JSLINQ.fn.init(dataItems);
+    };
+    JSLINQ.fn = JSLINQ.prototype = {
+        init: function(dataItems) {
+            this.items = dataItems;
+        },
+
+        // The current version of JSLINQ being used
+        jslinq: "2.10",
+
+        ToArray: function() { return this.items; },
+        Where: function(clause) {
+            var item;
+            var newArray = new Array();
+
+            // The clause was passed in as a Method that return a Boolean
+            for (var index = 0; index < this.items.length; index++) {
+                if (clause(this.items[index], index)) {
+                    newArray[newArray.length] = this.items[index];
+                }
+            }
+            return new JSLINQ(newArray);
+        },
+        Select: function(clause) {
+            var item;
+            var newArray = new Array();
+
+            // The clause was passed in as a Method that returns a Value
+            for (var i = 0; i < this.items.length; i++) {
+                if (clause(this.items[i])) {
+                    newArray[newArray.length] = clause(this.items[i]);
+                }
+            }
+            return new JSLINQ(newArray);
+        },
+        OrderBy: function(clause) {
+            var tempArray = new Array();
+            for (var i = 0; i < this.items.length; i++) {
+                tempArray[tempArray.length] = this.items[i];
+            }
+            return new JSLINQ(
+            tempArray.sort(function(a, b) {
+                var x = clause(a);
+                var y = clause(b);
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            })
+        );
+        },
+        OrderByDescending: function(clause) {
+            var tempArray = new Array();
+            for (var i = 0; i < this.items.length; i++) {
+                tempArray[tempArray.length] = this.items[i];
+            }
+            return new JSLINQ(
+            tempArray.sort(function(a, b) {
+                var x = clause(b);
+                var y = clause(a);
+                return ((x < y) ? -1 : ((x > y) ? 1 : 0));
+            })
+        );
+        },
+        SelectMany: function(clause) {
+            var r = new Array();
+            for (var i = 0; i < this.items.length; i++) {
+                r = r.concat(clause(this.items[i]));
+            }
+            return new JSLINQ(r);
+        },
+        Count: function(clause) {
+            if (clause == null)
+                return this.items.length;
+            else
+                return this.Where(clause).items.length;
+        },
+        Distinct: function(clause) {
+            var item;
+            var dict = new Object();
+            var retVal = new Array();
+            for (var i = 0; i < this.items.length; i++) {
+                item = clause(this.items[i]);
+                // TODO - This doens't correctly compare Objects. Need to fix this
+                if (dict[item] == null) {
+                    dict[item] = true;
+                    retVal[retVal.length] = item;
+                }
+            }
+            dict = null;
+            return new JSLINQ(retVal);
+        },
+        Any: function(clause) {
+            for (var index = 0; index < this.items.length; index++) {
+                if (clause(this.items[index], index)) { return true; }
+            }
+            return false;
+        },
+        All: function(clause) {
+            for (var index = 0; index < this.items.length; index++) {
+                if (!clause(this.items[index], index)) { return false; }
+            }
+            return true;
+        },
+        Reverse: function() {
+            var retVal = new Array();
+            for (var index = this.items.length - 1; index > -1; index--)
+                retVal[retVal.length] = this.items[index];
+            return new JSLINQ(retVal);
+        },
+        First: function(clause) {
+            if (clause != null) {
+                return this.Where(clause).First();
+            }
+            else {
+                // If no clause was specified, then return the First element in the Array
+                if (this.items.length > 0)
+                    return this.items[0];
+                else
+                    return null;
+            }
+        },
+        Last: function(clause) {
+            if (clause != null) {
+                return this.Where(clause).Last();
+            }
+            else {
+                // If no clause was specified, then return the First element in the Array
+                if (this.items.length > 0)
+                    return this.items[this.items.length - 1];
+                else
+                    return null;
+            }
+        },
+        ElementAt: function(index) {
+            return this.items[index];
+        },
+        Concat: function(array) {
+            var arr = array.items || array;
+            return new JSLINQ(this.items.concat(arr));
+        },
+        Intersect: function(secondArray, clause) {
+            var clauseMethod;
+            if (clause != undefined) {
+                clauseMethod = clause;
+            } else {
+                clauseMethod = function(item, index, item2, index2) { return item == item2; };
+            }
+
+            var sa = secondArray.items || secondArray;
+
+            var result = new Array();
+            for (var a = 0; a < this.items.length; a++) {
+                for (var b = 0; b < sa.length; b++) {
+                    if (clauseMethod(this.items[a], a, sa[b], b)) {
+                        result[result.length] = this.items[a];
+                    }
+                }
+            }
+            return new JSLINQ(result);
+        },
+        DefaultIfEmpty: function(defaultValue) {
+            if (this.items.length == 0) {
+                return defaultValue;
+            }
+            return this;
+        },
+        ElementAtOrDefault: function(index, defaultValue) {
+            if (index >= 0 && index < this.items.length) {
+                return this.items[index];
+            }
+            return defaultValue;
+        },
+        FirstOrDefault: function(defaultValue) {
+            return this.First() || defaultValue;
+        },
+        LastOrDefault: function(defaultValue) {
+            return this.Last() || defaultValue;
+        }
+    };
+    JSLINQ.fn.init.prototype = JSLINQ.fn;
+})();
 
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
@@ -926,9 +1189,9 @@ this["templates"]["src/templates/billboard/billboard_item.html"] = Handlebars.te
 this["templates"]["src/templates/carousel/carousel_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "<div class=\"item\" >\n	<div class=\"lbo-content\">\n		<h1 class=\"lbo-title\">"
+  return "<div class=\"item\" >\n	<div class=\"lbo-content\">\n		<h3 class=\"lbo-title\">"
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</h1>\n		<p class=\"lbo-teaser\">"
+    + "</h3>\n		<p class=\"lbo-teaser\">"
     + ((stack1 = ((helper = (helper = helpers.teaser || (depth0 != null ? depth0.teaser : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"teaser","hash":{},"data":data}) : helper))) != null ? stack1 : "")
     + "<div class=\"paragraph-end details-light\"></div></p>\n		<a href=\""
     + alias3(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
@@ -960,23 +1223,29 @@ this["templates"]["src/templates/list/list_group.html"] = Handlebars.template({"
 this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
     var helper, alias1=helpers.helperMissing, alias2="function", alias3=this.escapeExpression;
 
-  return "		<div class=\"lbo-crop\">\n			<img src=\""
-    + alias3(((helper = (helper = helpers.image_small || (depth0 != null ? depth0.image_small : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"image_small","hash":{},"data":data}) : helper)))
+  return "			<div class=\"lbo-crop\">\n				<img src=\""
+    + alias3(((helper = (helper = helpers.image_large || (depth0 != null ? depth0.image_large : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"image_large","hash":{},"data":data}) : helper)))
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "\"/>\n		</div>\n";
+    + "\"/>\n			</div>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
+    var stack1, helper, alias1=this.lambda, alias2=this.escapeExpression, alias3=helpers.helperMissing, alias4="function";
 
   return "\n	<div class=\"lbo-list-item "
-    + alias1(this.lambda(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
-    + "\">\n"
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + "\">\n		<a href=\""
+    + alias2(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
+    + "\" class=\"lbo-title\">\n"
     + ((stack1 = helpers['if'].call(depth0,(depth0 != null ? depth0.image_small : depth0),{"name":"if","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
-    + "		<a href=\""
-    + alias1(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
-    + "\" class=\"lbo-title\">"
-    + alias1(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</a>\n		<div class=\"paragraph-end details-light\"></div>\n	</div>\n";
+    + "			<div class=\"lbo-list-item-title\">"
+    + alias2(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</div>\n			<div class=\"lbo-list-item-date-summary\">"
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.first_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
+    + " - "
+    + alias2(alias1(((stack1 = (depth0 != null ? depth0.last_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
+    + "</div>\n			<div class=\"lbo-list-item-controls\">\n				<button class=\"lbo-list-item-btn-performances\" type=\"button\" class=\"btn btn-xs btn-primary\" data-event-id=\""
+    + alias2(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\">\n					<span class=\"glyphicon glyphicon-calendar\"></span>\n				</button>\n			</div>\n		</a>\n	</div>\n";
 },"useData":true});
 
 this["templates"]["src/templates/misc/category_list.html"] = Handlebars.template({"1":function(depth0,helpers,partials,data) {
@@ -1040,7 +1309,7 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
 },"useData":true});
 
 this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" />\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<input name=\"search\" type=\"text\" class=\"form-control\" placeholder=\"Search\"/>\n	</div>\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" placeholder=\"Date\"/>\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
 },"useData":true});
 
 this["templates"]["src/templates/search/search_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
