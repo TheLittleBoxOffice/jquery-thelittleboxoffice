@@ -43,12 +43,20 @@
 			}
 
 			for (var i = 0; i < data_item.performances.length; i++) {
-				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDate(
+				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDateTime(
 					data_item.performances[i].start_date + ' ' + data_item.performances[i].start_time
 				, options);
 			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+		},
+
+		themeListScript : function(options) {
+			if (options.performance_click != null) {
+				$(".lbo-list-item-performances li a").click(function(event) {
+					console.log(event, $(this).attr('data-performance-id'));
+				});
+			}
 		}
 	});
 }( jQuery ));

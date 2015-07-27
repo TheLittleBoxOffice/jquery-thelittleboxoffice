@@ -13,7 +13,8 @@
 			'calendar_button_click' : null,
 			'complete' : null,
 			'performance_click' : null,
-			'date_format' : 'D MMM YYYY'
+			'date_format' : 'D MMM YYYY',
+			'time_format' : 'h:mma'
   		},
 
 		build : function(options) {
@@ -65,20 +66,25 @@
 		formatDate : function(str_date, options) {
 			
 			if (str_date != undefined) {
-
 				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
-				var mon_date_Str = moment(con_date).format(options.date_format);
+				return moment(con_date).format(options.date_format);
+			} else {
+				return '';
+			}
+		},
 
-				console.log(con_date, mon_date_Str);
-
-				return mon_date_Str;
+		formatDateTime : function(str_date, options) {
+			
+			if (str_date != undefined) {
+				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
+				return moment(con_date).format(options.date_format + ' ' + options.time_format);
 			} else {
 				return '';
 			}
 		},
 
 		strToDate : function(str_date) {
-			
+
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
 

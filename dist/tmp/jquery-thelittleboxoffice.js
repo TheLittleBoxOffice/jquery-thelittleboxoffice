@@ -13,7 +13,8 @@
 			'calendar_button_click' : null,
 			'complete' : null,
 			'performance_click' : null,
-			'date_format' : 'D MMM YYYY'
+			'date_format' : 'D MMM YYYY',
+			'time_format' : 'h:mma'
   		},
 
 		build : function(options) {
@@ -65,22 +66,24 @@
 		formatDate : function(str_date, options) {
 			
 			if (str_date != undefined) {
-
 				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
-				var mon_date_Str = moment(con_date).format(options.date_format);
+				return moment(con_date).format(options.date_format);
+			} else {
+				return '';
+			}
+		},
 
-				console.log(con_date, mon_date_Str);
-
-				return mon_date_Str;
+		formatDateTime : function(str_date, options) {
+			
+			if (str_date != undefined) {
+				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
+				return moment(con_date).format(options.date_format + ' ' + options.time_format);
 			} else {
 				return '';
 			}
 		},
 
 		strToDate : function(str_date) {
-
-
-			console.log(str_date);
 
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
@@ -219,11 +222,20 @@
 			}
 
 			for (var i = 0; i < data_item.performances.length; i++) {
-				console.log('here',data_item.performances[i]);
-				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.performances[i].start_date, options);
+				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDateTime(
+					data_item.performances[i].start_date + ' ' + data_item.performances[i].start_time
+				, options);
 			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+		},
+
+		themeListScript : function(options) {
+			if (options.performance_click != null) {
+				$(".lbo-list-item-performances li a").click(function(event) {
+					console.log(event, $(this).attr('data-performance-id'));
+				});
+			}
 		}
 	});
 }( jQuery ));
@@ -315,7 +327,7 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
-			console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
+			//console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
 
 			var dataset = $.fn.thelittleboxoffice.build({
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
@@ -1273,8 +1285,12 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "\"/>\n			</div>\n";
 },"3":function(depth0,helpers,partials,data) {
-    return "				<li><a href=\"#\">"
-    + this.escapeExpression(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
+    var helper, alias1=this.escapeExpression;
+
+  return "				<li><a href=\"#\" data-performance-id=\""
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\">"
+    + alias1(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
     + "</a></li>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";

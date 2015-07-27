@@ -86,7 +86,7 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
-			console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
+			//console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
 
 			var dataset = $.fn.thelittleboxoffice.build({
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,

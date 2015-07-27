@@ -59,8 +59,12 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "\"/>\n			</div>\n";
 },"3":function(depth0,helpers,partials,data) {
-    return "				<li><a href=\"#\">"
-    + this.escapeExpression(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
+    var helper, alias1=this.escapeExpression;
+
+  return "				<li><a href=\"#\" data-performance-id=\""
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "\">"
+    + alias1(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
     + "</a></li>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
