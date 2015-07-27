@@ -17,7 +17,6 @@
 				html = html + $.fn.thelittleboxoffice.template(dataset[i], "billboard/billboard_small_item");
 			}
 			return html;
-		}		
-
+		}
 	});
 }( jQuery ));

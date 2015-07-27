@@ -58,23 +58,29 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "\"/>\n			</div>\n";
+},"3":function(depth0,helpers,partials,data) {
+    return "				<li><a href=\"#\">"
+    + this.escapeExpression(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
+    + "</a></li>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    var stack1, helper, alias1=this.lambda, alias2=this.escapeExpression, alias3=helpers.helperMissing, alias4="function";
+    var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
 
   return "\n	<div class=\"lbo-list-item "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + alias1(this.lambda(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + " lbo-list-item-"
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">\n		<a href=\""
-    + alias2(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
+    + alias1(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
     + "\" class=\"lbo-title\">\n"
     + ((stack1 = helpers['if'].call(depth0,(depth0 != null ? depth0.image_small : depth0),{"name":"if","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
-    + "			<div class=\"lbo-list-item-title\">"
-    + alias2(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</div>\n			<div class=\"lbo-list-item-date-summary\">"
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.first_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
-    + " - "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.last_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
-    + "</div>\n			<div class=\"lbo-list-item-controls\">\n				<button class=\"lbo-list-item-btn-performances\" type=\"button\" class=\"btn btn-xs btn-primary\" data-event-id=\""
-    + alias2(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "			<ul class=\"lbo-list-item-performances\">\n"
+    + ((stack1 = helpers.each.call(depth0,(depth0 != null ? depth0.performances : depth0),{"name":"each","hash":{},"fn":this.program(3, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
+    + "			</ul>\n			<div class=\"lbo-list-item-title\">"
+    + alias1(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</div>\n			<div class=\"lbo-list-item-date-summary\">\n				"
+    + alias1(((helper = (helper = helpers.on_from_formatted || (depth0 != null ? depth0.on_from_formatted : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"on_from_formatted","hash":{},"data":data}) : helper)))
+    + "\n			</div>\n			<div class=\"lbo-list-item-controls\">\n				<button class=\"lbo-list-item-btn-performances\" type=\"button\" class=\"btn btn-xs btn-primary\" data-event-id=\""
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">\n					<span class=\"glyphicon glyphicon-calendar\"></span>\n				</button>\n			</div>\n		</a>\n	</div>\n";
 },"useData":true});
 
@@ -139,7 +145,7 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
 },"useData":true});
 
 this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<input name=\"search\" type=\"text\" class=\"form-control\" placeholder=\"Search\"/>\n	</div>\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" placeholder=\"Date\"/>\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group lbo-search-text\">\n		<input name=\"search\" type=\"text\" class=\"form-control\" placeholder=\"Search\"/>\n	</div>\n\n	<div class=\"input-group lbo-search-category\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" placeholder=\"Date\"/>\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
 },"useData":true});
 
 this["templates"]["src/templates/search/search_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {

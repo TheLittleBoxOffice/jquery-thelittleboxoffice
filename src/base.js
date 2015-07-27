@@ -10,7 +10,10 @@
 			'item_class' : '',
 			'wrapper_class' : '',
 			'search_change' : null,
-			'complete' : null
+			'calendar_button_click' : null,
+			'complete' : null,
+			'performance_click' : null,
+			'date_format' : 'D MMM YYYY'
   		},
 
 		build : function(options) {
@@ -20,7 +23,7 @@
 			
 			// execute the query
 			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
-
+			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
@@ -59,10 +62,32 @@
 			return parseInt(str_date.replace(/-/gi, "").replace(/:/gi, ""));
 		},
 
+		formatDate : function(str_date, options) {
+			
+			if (str_date != undefined) {
+
+				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
+				var mon_date_Str = moment(con_date).format(options.date_format);
+
+				console.log(con_date, mon_date_Str);
+
+				return mon_date_Str;
+			} else {
+				return '';
+			}
+		},
+
 		strToDate : function(str_date) {
+			
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
-			var time_parts = parts[1].split(":");
+
+			if (date_parts.length > 3) {
+				var time_parts = parts[1].split(":");
+			} else {
+				var time_parts = ['00', '00', '00'];
+			}
+
 			return new Date(
 				parseInt(date_parts[0]),
 				parseInt(date_parts[1]),

@@ -10,7 +10,10 @@
 			'item_class' : '',
 			'wrapper_class' : '',
 			'search_change' : null,
-			'complete' : null
+			'calendar_button_click' : null,
+			'complete' : null,
+			'performance_click' : null,
+			'date_format' : 'D MMM YYYY'
   		},
 
 		build : function(options) {
@@ -20,7 +23,7 @@
 			
 			// execute the query
 			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
-
+			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
 			$(options.target).html($.fn.thelittleboxoffice[theme_function](dataset, options));
@@ -59,10 +62,35 @@
 			return parseInt(str_date.replace(/-/gi, "").replace(/:/gi, ""));
 		},
 
+		formatDate : function(str_date, options) {
+			
+			if (str_date != undefined) {
+
+				var con_date = $.fn.thelittleboxoffice.strToDate(str_date);
+				var mon_date_Str = moment(con_date).format(options.date_format);
+
+				console.log(con_date, mon_date_Str);
+
+				return mon_date_Str;
+			} else {
+				return '';
+			}
+		},
+
 		strToDate : function(str_date) {
+
+
+			console.log(str_date);
+
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
-			var time_parts = parts[1].split(":");
+
+			if (date_parts.length > 3) {
+				var time_parts = parts[1].split(":");
+			} else {
+				var time_parts = ['00', '00', '00'];
+			}
+
 			return new Date(
 				parseInt(date_parts[0]),
 				parseInt(date_parts[1]),
@@ -123,8 +151,7 @@
 				html = html + $.fn.thelittleboxoffice.template(dataset[i], "billboard/billboard_small_item");
 			}
 			return html;
-		}		
-
+		}
 	});
 }( jQuery ));
 (function ( $ ) {
@@ -178,10 +205,23 @@
 		},
 
 		themeListItemEncode : function(data_item, options) {
+			
 			data_item.options = options;
-
 			data_item.first_performance = data_item.performances[0];
 			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
+			data_item.first_performance_start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.first_performance.start_date, options);
+			data_item.last_performance_start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.last_performance.start_date, options);
+
+			if (data_item.first_performance_start_date_formatted != data_item.last_performance_start_date_formatted) {
+				data_item.on_from_formatted = data_item.first_performance_start_date_formatted + ' - ' + data_item.last_performance_start_date_formatted;
+			} else {
+				data_item.on_from_formatted = data_item.first_performance_start_date_formatted;
+			}
+
+			for (var i = 0; i < data_item.performances.length; i++) {
+				console.log('here',data_item.performances[i]);
+				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.performances[i].start_date, options);
+			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
 		}
@@ -193,9 +233,9 @@
 		themeSearchTextTimerId : null,
 
 		themeSearchEncode : function(dataset, options) {
-			var data = { search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") };
-
-			return $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
+			return $.fn.thelittleboxoffice.template({ 
+				search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") 
+			}, "search/search_wrapper");
 		},
 
 		themeSearchScript : function(options) {
@@ -275,6 +315,8 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
+			console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
+
 			var dataset = $.fn.thelittleboxoffice.build({
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
@@ -290,8 +332,10 @@
 			$('.lbo-list-item-btn-performances').each(function(index, value) {
 				$(value).click(function(event) {
 
-					console.log($(value).data("event-id"));
-
+					// fire the calendar button click event
+					if (options.calendar_button_click != null) 
+						options.calendar_button_click(value, $(value).data("event-id"));
+					
 					event.preventDefault();
 				});
 			});
@@ -1228,23 +1272,29 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + "\" alt=\""
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "\"/>\n			</div>\n";
+},"3":function(depth0,helpers,partials,data) {
+    return "				<li><a href=\"#\">"
+    + this.escapeExpression(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
+    + "</a></li>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    var stack1, helper, alias1=this.lambda, alias2=this.escapeExpression, alias3=helpers.helperMissing, alias4="function";
+    var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
 
   return "\n	<div class=\"lbo-list-item "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + alias1(this.lambda(((stack1 = (depth0 != null ? depth0.options : depth0)) != null ? stack1.item_class : stack1), depth0))
+    + " lbo-list-item-"
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">\n		<a href=\""
-    + alias2(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
+    + alias1(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
     + "\" class=\"lbo-title\">\n"
     + ((stack1 = helpers['if'].call(depth0,(depth0 != null ? depth0.image_small : depth0),{"name":"if","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
-    + "			<div class=\"lbo-list-item-title\">"
-    + alias2(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
-    + "</div>\n			<div class=\"lbo-list-item-date-summary\">"
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.first_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
-    + " - "
-    + alias2(alias1(((stack1 = (depth0 != null ? depth0.last_performance : depth0)) != null ? stack1.start_date : stack1), depth0))
-    + "</div>\n			<div class=\"lbo-list-item-controls\">\n				<button class=\"lbo-list-item-btn-performances\" type=\"button\" class=\"btn btn-xs btn-primary\" data-event-id=\""
-    + alias2(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias3),(typeof helper === alias4 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
+    + "			<ul class=\"lbo-list-item-performances\">\n"
+    + ((stack1 = helpers.each.call(depth0,(depth0 != null ? depth0.performances : depth0),{"name":"each","hash":{},"fn":this.program(3, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
+    + "			</ul>\n			<div class=\"lbo-list-item-title\">"
+    + alias1(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
+    + "</div>\n			<div class=\"lbo-list-item-date-summary\">\n				"
+    + alias1(((helper = (helper = helpers.on_from_formatted || (depth0 != null ? depth0.on_from_formatted : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"on_from_formatted","hash":{},"data":data}) : helper)))
+    + "\n			</div>\n			<div class=\"lbo-list-item-controls\">\n				<button class=\"lbo-list-item-btn-performances\" type=\"button\" class=\"btn btn-xs btn-primary\" data-event-id=\""
+    + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">\n					<span class=\"glyphicon glyphicon-calendar\"></span>\n				</button>\n			</div>\n		</a>\n	</div>\n";
 },"useData":true});
 
@@ -1309,7 +1359,7 @@ this["templates"]["src/templates/month_view/month_view_select.html"] = Handlebar
 },"useData":true});
 
 this["templates"]["src/templates/search/search_form.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
-    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group\">\n		<input name=\"search\" type=\"text\" class=\"form-control\" placeholder=\"Search\"/>\n	</div>\n\n	<div class=\"input-group\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" placeholder=\"Date\"/>\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
+    return "<form id=\"lbo-form-search\" name=\"lbo-form-search\" class=\"form-inline\">\n\n	<div class=\"input-group lbo-search-text\">\n		<input name=\"search\" type=\"text\" class=\"form-control\" placeholder=\"Search\"/>\n	</div>\n\n	<div class=\"input-group lbo-search-category\">\n		<select name=\"category[]\" class=\"selectpicker\" multiple=\"true\" title=\"Category\"></select>\n	</div>\n\n	<div class=\"input-group date lbo-search-datepicker\">\n		<input type=\"text\" class=\"form-control\" placeholder=\"Date\"/>\n		<span class=\"input-group-addon\">\n			<span class=\"glyphicon glyphicon-calendar\"></span>\n		</span>\n	</div>	\n\n</form>";
 },"useData":true});
 
 this["templates"]["src/templates/search/search_group.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {

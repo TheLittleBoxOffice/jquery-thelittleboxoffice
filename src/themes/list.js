@@ -29,10 +29,24 @@
 		},
 
 		themeListItemEncode : function(data_item, options) {
+			
 			data_item.options = options;
-
 			data_item.first_performance = data_item.performances[0];
 			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
+			data_item.first_performance_start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.first_performance.start_date, options);
+			data_item.last_performance_start_date_formatted = $.fn.thelittleboxoffice.formatDate(data_item.last_performance.start_date, options);
+
+			if (data_item.first_performance_start_date_formatted != data_item.last_performance_start_date_formatted) {
+				data_item.on_from_formatted = data_item.first_performance_start_date_formatted + ' - ' + data_item.last_performance_start_date_formatted;
+			} else {
+				data_item.on_from_formatted = data_item.first_performance_start_date_formatted;
+			}
+
+			for (var i = 0; i < data_item.performances.length; i++) {
+				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDate(
+					data_item.performances[i].start_date + ' ' + data_item.performances[i].start_time
+				, options);
+			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
 		}

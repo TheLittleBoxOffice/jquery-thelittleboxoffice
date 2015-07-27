@@ -4,9 +4,9 @@
 		themeSearchTextTimerId : null,
 
 		themeSearchEncode : function(dataset, options) {
-			var data = { search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") };
-
-			return $.fn.thelittleboxoffice.template(data, "search/search_wrapper");
+			return $.fn.thelittleboxoffice.template({ 
+				search_form : $.fn.thelittleboxoffice.template(null, "search/search_form") 
+			}, "search/search_wrapper");
 		},
 
 		themeSearchScript : function(options) {
@@ -86,6 +86,8 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
+			console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
+
 			var dataset = $.fn.thelittleboxoffice.build({
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
@@ -101,8 +103,10 @@
 			$('.lbo-list-item-btn-performances').each(function(index, value) {
 				$(value).click(function(event) {
 
-					console.log($(value).data("event-id"));
-
+					// fire the calendar button click event
+					if (options.calendar_button_click != null) 
+						options.calendar_button_click(value, $(value).data("event-id"));
+					
 					event.preventDefault();
 				});
 			});
