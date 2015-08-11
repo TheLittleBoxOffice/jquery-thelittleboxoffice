@@ -86,18 +86,11 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker").date() != null)
 				search_date_string = 'start_date=' + $('.lbo-search-datepicker').data("DateTimePicker").date().format("YYYY-MM-DD") + ';';
 
-			//console.log('search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string);
-
 			var dataset = $.fn.thelittleboxoffice.build({
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list',
-				item_class : options.item_class,
-				complete : function(dataset) {
-					$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(
-						$.fn.thelittleboxoffice.query('search=' + search_string + ';category_id=' + categories_id_string + ';group=category;order_desc=count desc;').available_dates
-					);
-				}
+				item_class : options.item_class
 			});
 
 			$('.lbo-list-item-btn-performances').each(function(index, value) {

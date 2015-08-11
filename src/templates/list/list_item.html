@@ -1,5 +1,5 @@
 
-	<div class="lbo-list-item {{options.item_class}} lbo-list-item-{{id}}">
+	<div class="lbo-list-item {{options.item_class}} lbo-list-item-{{id}}" data-event-id="{{id}}">
 		<a href="{{link_view}}" class="lbo-title">
 			{{#if image_small}}
 			<div class="lbo-crop">
@@ -16,7 +16,7 @@
 				{{on_from_formatted}}
 			</div>
 			<div class="lbo-list-item-controls">
-				<button class="lbo-list-item-btn-performances" type="button" class="btn btn-xs btn-primary" data-event-id="{{id}}">
+				<button class="lbo-list-item-btn-performances btn btn-default" type="button" class="btn btn-xs btn-primary" data-event-id="{{id}}">
 					<span class="glyphicon glyphicon-calendar"></span>
 				</button>
 			</div>

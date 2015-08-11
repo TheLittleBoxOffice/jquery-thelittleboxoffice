@@ -54,7 +54,14 @@
 		themeListScript : function(options) {
 			if (options.performance_click != null) {
 				$(".lbo-list-item-performances li a").click(function(event) {
-					console.log(event, $(this).attr('data-performance-id'));
+					event.preventDefault();
+					options.performance_click(event.target, parseInt($(this).attr('data-performance-id')));
+				});
+			}
+			if (options.event_title_click != null) {
+				$(".lbo-list-item-title").click(function(event) {
+					event.preventDefault();
+					options.event_title_click(event.target, parseInt($(event.target).parents('.lbo-list-item').attr('data-event-id')));
 				});
 			}
 		}

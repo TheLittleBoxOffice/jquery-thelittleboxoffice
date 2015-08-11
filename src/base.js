@@ -11,6 +11,8 @@
 			'wrapper_class' : '',
 			'search_change' : null,
 			'calendar_button_click' : null,
+			'event_title_click' : null,
+			'image_click' : null,
 			'complete' : null,
 			'performance_click' : null,
 			'date_format' : 'D MMM YYYY',

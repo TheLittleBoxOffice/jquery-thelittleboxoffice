@@ -267,7 +267,7 @@ var lbo_previous = [];
 						if (dataset.allowed_groups.indexOf(dataset.data[i].categories[c]) == -1)
 							category_allowed = false;
 					}
-
+					
 					// make sure a group exists for this category
 					if (category_allowed) {
 						if (typeof out.data[dataset.data[i].categories[c]] == 'undefined') {
@@ -283,7 +283,7 @@ var lbo_previous = [];
 					}
 				}
 			}
-
+			
 			return out;
 		},
 
@@ -392,7 +392,7 @@ var lbo_previous = [];
 					}
 				}
 			}
-
+			
 			return filtered;
 		},
 
