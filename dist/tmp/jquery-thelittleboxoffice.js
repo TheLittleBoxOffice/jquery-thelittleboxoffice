@@ -12,6 +12,7 @@
 			'search_change' : null,
 			'calendar_button_click' : null,
 			'event_title_click' : null,
+			'image_click' : null,
 			'complete' : null,
 			'performance_click' : null,
 			'date_format' : 'D MMM YYYY',
@@ -89,7 +90,7 @@
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
 
-			if (date_parts.length > 3) {
+			if (parts.length == 2) {
 				var time_parts = parts[1].split(":");
 			} else {
 				var time_parts = ['00', '00', '00'];
@@ -97,7 +98,7 @@
 
 			return new Date(
 				parseInt(date_parts[0]),
-				parseInt(date_parts[1]),
+				parseInt(date_parts[1] - 1),
 				parseInt(date_parts[2]),
 				parseInt(time_parts[0]),
 				parseInt(time_parts[1]),
@@ -226,6 +227,7 @@
 				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDateTime(
 					data_item.performances[i].start_date + ' ' + data_item.performances[i].start_time
 				, options);
+				data_item.performances[i].places_left = data_item.performances[i].places_total - data_item.performances[i].places_sold;
 			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
@@ -233,7 +235,7 @@
 
 		themeListScript : function(options) {
 			if (options.performance_click != null) {
-				$(".lbo-list-item-performances li a").click(function(event) {
+				$(".lbo-list-item-performances a").click(function(event) {
 					event.preventDefault();
 					options.performance_click(event.target, parseInt($(this).attr('data-performance-id')));
 				});
@@ -302,6 +304,8 @@
 			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) {
 				$('.lbo-search-datepicker').data("DateTimePicker").destroy();
 			}
+
+			console.log(enabled_dates);
 
 			$('.lbo-search-datepicker').datetimepicker({
 				format : 'DD MMMM YYYY',
@@ -1286,13 +1290,15 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + alias3(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias1),(typeof helper === alias2 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "\"/>\n			</div>\n";
 },"3":function(depth0,helpers,partials,data) {
-    var helper, alias1=this.escapeExpression;
+    var helper, alias1=this.escapeExpression, alias2=this.lambda;
 
-  return "				<li><a href=\"#\" data-performance-id=\""
+  return "					<tr>\n						<td><a href=\"#\" data-performance-id=\""
     + alias1(((helper = (helper = helpers.id || (depth0 != null ? depth0.id : depth0)) != null ? helper : helpers.helperMissing),(typeof helper === "function" ? helper.call(depth0,{"name":"id","hash":{},"data":data}) : helper)))
     + "\">"
-    + alias1(this.lambda((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
-    + "</a></li>\n";
+    + alias1(alias2((depth0 != null ? depth0.start_date_formatted : depth0), depth0))
+    + "</a></td>\n						<td><span>"
+    + alias1(alias2((depth0 != null ? depth0.places_left : depth0), depth0))
+    + "</span></td>\n					</tr>\n";
 },"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {
     var stack1, helper, alias1=this.escapeExpression, alias2=helpers.helperMissing, alias3="function";
 
@@ -1306,9 +1312,9 @@ this["templates"]["src/templates/list/list_item.html"] = Handlebars.template({"1
     + alias1(((helper = (helper = helpers.link_view || (depth0 != null ? depth0.link_view : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"link_view","hash":{},"data":data}) : helper)))
     + "\" class=\"lbo-title\">\n"
     + ((stack1 = helpers['if'].call(depth0,(depth0 != null ? depth0.image_small : depth0),{"name":"if","hash":{},"fn":this.program(1, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
-    + "			<ul class=\"lbo-list-item-performances\">\n"
+    + "			<div class=\"lbo-list-item-performances\">\n				<table class=\"table\">\n"
     + ((stack1 = helpers.each.call(depth0,(depth0 != null ? depth0.performances : depth0),{"name":"each","hash":{},"fn":this.program(3, data, 0),"inverse":this.noop,"data":data})) != null ? stack1 : "")
-    + "			</ul>\n			<div class=\"lbo-list-item-title\">"
+    + "				</table>\n			</div>\n			<div class=\"lbo-list-item-title\">"
     + alias1(((helper = (helper = helpers.title || (depth0 != null ? depth0.title : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"title","hash":{},"data":data}) : helper)))
     + "</div>\n			<div class=\"lbo-list-item-date-summary\">\n				"
     + alias1(((helper = (helper = helpers.on_from_formatted || (depth0 != null ? depth0.on_from_formatted : depth0)) != null ? helper : alias2),(typeof helper === alias3 ? helper.call(depth0,{"name":"on_from_formatted","hash":{},"data":data}) : helper)))

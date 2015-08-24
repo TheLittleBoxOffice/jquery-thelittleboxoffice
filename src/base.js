@@ -90,7 +90,7 @@
 			var parts = str_date.split(" ");
 			var date_parts = parts[0].split("-");
 
-			if (date_parts.length > 3) {
+			if (parts.length == 2) {
 				var time_parts = parts[1].split(":");
 			} else {
 				var time_parts = ['00', '00', '00'];
@@ -98,7 +98,7 @@
 
 			return new Date(
 				parseInt(date_parts[0]),
-				parseInt(date_parts[1]),
+				parseInt(date_parts[1] - 1),
 				parseInt(date_parts[2]),
 				parseInt(time_parts[0]),
 				parseInt(time_parts[1]),

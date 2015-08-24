@@ -6,11 +6,16 @@
 				<img src="{{image_large}}" alt="{{title}}"/>
 			</div>
 			{{/if}}
-			<ul class="lbo-list-item-performances">
-			{{#each performances}}
-				<li><a href="#" data-performance-id="{{id}}">{{this.start_date_formatted}}</a></li>
-			{{/each}}
-			</ul>
+			<div class="lbo-list-item-performances">
+				<table class="table">
+				{{#each performances}}
+					<tr>
+						<td><a href="#" data-performance-id="{{id}}">{{this.start_date_formatted}}</a></td>
+						<td><span>{{this.places_left}}</span></td>
+					</tr>
+				{{/each}}
+				</table>
+			</div>
 			<div class="lbo-list-item-title">{{title}}</div>
 			<div class="lbo-list-item-date-summary">
 				{{on_from_formatted}}

@@ -46,6 +46,7 @@
 				data_item.performances[i].start_date_formatted = $.fn.thelittleboxoffice.formatDateTime(
 					data_item.performances[i].start_date + ' ' + data_item.performances[i].start_time
 				, options);
+				data_item.performances[i].places_left = data_item.performances[i].places_total - data_item.performances[i].places_sold;
 			}
 
 			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
@@ -53,7 +54,7 @@
 
 		themeListScript : function(options) {
 			if (options.performance_click != null) {
-				$(".lbo-list-item-performances li a").click(function(event) {
+				$(".lbo-list-item-performances a").click(function(event) {
 					event.preventDefault();
 					options.performance_click(event.target, parseInt($(this).attr('data-performance-id')));
 				});
