@@ -8,6 +8,7 @@
 			'target' : null,
 			'theme' : 'billboard',
 			'item_class' : '',
+			'item_template' : null,
 			'wrapper_class' : '',
 			'search_change' : null,
 			'calendar_button_click' : null,
@@ -16,7 +17,8 @@
 			'complete' : null,
 			'performance_click' : null,
 			'date_format' : 'D MMM YYYY',
-			'time_format' : 'h:mma'
+			'time_format' : 'h:mma',
+			'debug' : false
   		},
 
 		build : function(options) {
@@ -24,8 +26,12 @@
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
 			
+			// check target exists
+			if ($(options.target).length == 0)
+				throw "Target " + options.target.selector + " not found";
+
 			// execute the query
-			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
+			var dataset = $.fn.thelittleboxoffice.query(options.query, true, options);
 			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
@@ -211,6 +217,8 @@
 
 		themeListItemEncode : function(data_item, options) {
 			
+			var output = '';
+
 			data_item.options = options;
 			data_item.first_performance = data_item.performances[0];
 			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
@@ -230,7 +238,13 @@
 				data_item.performances[i].places_left = data_item.performances[i].places_total - data_item.performances[i].places_sold;
 			}
 
-			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+			if (options.item_template == null) {
+				output = $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+			} else {
+				output = $.fn.thelittleboxoffice.templateString(data_item, options.item_template);
+			}
+
+			return output;
 		},
 
 		themeListScript : function(options) {
@@ -266,13 +280,17 @@
 			var ele_search = $('form[name="lbo-form-search"] input[name="search"]');
 
 			// setup the categories dropdown
-			ele_categories.append('<option value="0"></option>');
+			//ele_categories.append('<option value="0"></option>');
 			for (var c = 0; c < lbo_categories.length; c++) {
 				ele_categories.append('<option value="' + lbo_categories[c].id + '">' + lbo_categories[c].title + '</option>');
 			}
+			ele_categories.selectpicker();
 			ele_categories.change(function() {
 				$('form#lbo-form-search').submit();
 			});
+
+			// setup the date picker
+			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
 
 			// handle the text search
 			$('input[name="search"]').keyup(function() {
@@ -301,12 +319,9 @@
 
 			$('.lbo-search-datepicker').off("dp.change", $.fn.thelittleboxoffice.themeSearchDatePicker_Change);
 
-			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) {
+			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) 
 				$('.lbo-search-datepicker').data("DateTimePicker").destroy();
-			}
-
-			console.log(enabled_dates);
-
+			
 			$('.lbo-search-datepicker').datetimepicker({
 				format : 'DD MMMM YYYY',
 				enabledDates : (enabled_dates === false) ? false : enabled_dates
@@ -328,8 +343,6 @@
 
 			ele_results.html('');
 
-			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
-
 			if (ele_categories.val() != null && ele_categories.val().length > 0)
 				categories = $.fn.thelittleboxoffice.apiGetCategoryByIds(ele_categories.val());
 
@@ -343,8 +356,11 @@
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list',
-				item_class : options.item_class
+				item_class : options.item_class,
+				item_template : options.item_template
 			});
+
+			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(dataset.available_dates);
 
 			$('.lbo-list-item-btn-performances').each(function(index, value) {
 				$(value).click(function(event) {
@@ -569,7 +585,13 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		query : function(query, savePrevious) {
+		query : function(query, savePrevious, options) {
+
+			// start debug
+			if (options.debug == true) {
+				var start = new Date().getTime();
+				console.log("query recieved", query);
+			}
 
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
@@ -592,8 +614,14 @@ var lbo_previous = [];
 			// figure out what performance dates are available
 			dataset.available_dates = this.getAvailableDates(dataset);
 
-			// return the rows highlighted for filtering
-			//console.log(query, dataset);
+			// end debug
+			if (options.debug == true) {
+				var end = new Date().getTime();
+				var time = (end - start) / 1000;
+				console.log("Execution time " + time + " seconds");
+			}
+
+			// return the results
 			return dataset;
 		},
 
@@ -1212,6 +1240,14 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
+		templateString : function(dataset, template_source) {
+			var template = Handlebars.compile(template_source);
+			return this.bakeTemplate(
+				template, 
+				dataset
+			);
+		},
+
 		template : function(dataset, template_name) {
 			return this.bakeTemplate(
 				this.getTemplate(template_name), 
@@ -1229,6 +1265,8 @@ var lbo_previous = [];
 		
 	});
 }( jQuery ));
+
+
 this["templates"] = this["templates"] || {};
 
 this["templates"]["src/templates/billboard/billboard_item.html"] = Handlebars.template({"compiler":[6,">= 2.0.0-beta.1"],"main":function(depth0,helpers,partials,data) {

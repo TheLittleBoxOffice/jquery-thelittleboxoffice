@@ -3,7 +3,13 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		query : function(query, savePrevious) {
+		query : function(query, savePrevious, options) {
+
+			// start debug
+			if (options.debug == true) {
+				var start = new Date().getTime();
+				console.log("query recieved", query);
+			}
 
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
@@ -26,8 +32,14 @@ var lbo_previous = [];
 			// figure out what performance dates are available
 			dataset.available_dates = this.getAvailableDates(dataset);
 
-			// return the rows highlighted for filtering
-			//console.log(query, dataset);
+			// end debug
+			if (options.debug == true) {
+				var end = new Date().getTime();
+				var time = (end - start) / 1000;
+				console.log("Execution time " + time + " seconds");
+			}
+
+			// return the results
 			return dataset;
 		},
 

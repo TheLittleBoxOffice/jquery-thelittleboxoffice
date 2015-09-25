@@ -8,6 +8,7 @@
 			'target' : null,
 			'theme' : 'billboard',
 			'item_class' : '',
+			'item_template' : null,
 			'wrapper_class' : '',
 			'search_change' : null,
 			'calendar_button_click' : null,
@@ -16,7 +17,8 @@
 			'complete' : null,
 			'performance_click' : null,
 			'date_format' : 'D MMM YYYY',
-			'time_format' : 'h:mma'
+			'time_format' : 'h:mma',
+			'debug' : false
   		},
 
 		build : function(options) {
@@ -24,8 +26,12 @@
 			// extend the defaults with user options
 			options = $.extend(this.default_options, options);
 			
+			// check target exists
+			if ($(options.target).length == 0)
+				throw "Target " + options.target.selector + " not found";
+
 			// execute the query
-			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
+			var dataset = $.fn.thelittleboxoffice.query(options.query, true, options);
 			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);

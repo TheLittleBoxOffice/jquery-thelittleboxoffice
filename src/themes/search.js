@@ -15,13 +15,17 @@
 			var ele_search = $('form[name="lbo-form-search"] input[name="search"]');
 
 			// setup the categories dropdown
-			ele_categories.append('<option value="0"></option>');
+			//ele_categories.append('<option value="0"></option>');
 			for (var c = 0; c < lbo_categories.length; c++) {
 				ele_categories.append('<option value="' + lbo_categories[c].id + '">' + lbo_categories[c].title + '</option>');
 			}
+			ele_categories.selectpicker();
 			ele_categories.change(function() {
 				$('form#lbo-form-search').submit();
 			});
+
+			// setup the date picker
+			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
 
 			// handle the text search
 			$('input[name="search"]').keyup(function() {
@@ -50,12 +54,9 @@
 
 			$('.lbo-search-datepicker').off("dp.change", $.fn.thelittleboxoffice.themeSearchDatePicker_Change);
 
-			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) {
+			if ($('.lbo-search-datepicker').data("DateTimePicker") != undefined) 
 				$('.lbo-search-datepicker').data("DateTimePicker").destroy();
-			}
-
-			console.log(enabled_dates);
-
+			
 			$('.lbo-search-datepicker').datetimepicker({
 				format : 'DD MMMM YYYY',
 				enabledDates : (enabled_dates === false) ? false : enabled_dates
@@ -90,10 +91,11 @@
 				query : 'search=' + search_string + ';category_id=' + categories_id_string + ';order_desc=count;group=category;' + search_date_string,
 				target : ele_results,
 				theme : 'list',
-				item_class : options.item_class
+				item_class : options.item_class,
+				item_template : options.item_template
 			});
 
-			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(false);
+			$.fn.thelittleboxoffice.themeSearchDatePickerUpdate(dataset.available_dates);
 
 			$('.lbo-list-item-btn-performances').each(function(index, value) {
 				$(value).click(function(event) {

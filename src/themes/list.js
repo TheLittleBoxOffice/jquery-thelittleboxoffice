@@ -30,6 +30,8 @@
 
 		themeListItemEncode : function(data_item, options) {
 			
+			var output = '';
+
 			data_item.options = options;
 			data_item.first_performance = data_item.performances[0];
 			data_item.last_performance = data_item.performances[data_item.performances.length - 1];
@@ -49,7 +51,13 @@
 				data_item.performances[i].places_left = data_item.performances[i].places_total - data_item.performances[i].places_sold;
 			}
 
-			return $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+			if (options.item_template == null) {
+				output = $.fn.thelittleboxoffice.template(data_item, "list/list_item");
+			} else {
+				output = $.fn.thelittleboxoffice.templateString(data_item, options.item_template);
+			}
+
+			return output;
 		},
 
 		themeListScript : function(options) {
