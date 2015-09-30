@@ -39,7 +39,7 @@ var test_suite = {
 			target : $('#render'),
 			theme : 'search',
 			item_class : 'card',
-			item_template : 'hello world',
+			item_template : '<div>{{title}}</div>',
 			event_title_click : function(element, event_id) {
 				location.href = u('/event/view/' + event_id);
 			},

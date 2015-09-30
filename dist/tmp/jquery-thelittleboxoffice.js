@@ -31,7 +31,7 @@
 				throw "Target " + options.target.selector + " not found";
 
 			// execute the query
-			var dataset = $.fn.thelittleboxoffice.query(options.query, true, options);
+			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
 			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
@@ -585,13 +585,7 @@ var lbo_previous = [];
 (function ( $ ) {
 	$.extend($.fn.thelittleboxoffice, {
 
-		query : function(query, savePrevious, options) {
-
-			// start debug
-			if (options.debug == true) {
-				var start = new Date().getTime();
-				console.log("query recieved", query);
-			}
+		query : function(query, savePrevious) {
 
 			// clone the dataset and convert the commands to objects
 			var dataset = this.reCreateDataSet();
@@ -603,7 +597,6 @@ var lbo_previous = [];
 				// apply all the command in the query
 				for (var i = 0; i < commands.length; i++) {
 					dataset = this.processCommand(commands[i], dataset);
-					// console.log(commands[i], dataset);
 				}
 
 				// add to the previous array
@@ -613,13 +606,6 @@ var lbo_previous = [];
 
 			// figure out what performance dates are available
 			dataset.available_dates = this.getAvailableDates(dataset);
-
-			// end debug
-			if (options.debug == true) {
-				var end = new Date().getTime();
-				var time = (end - start) / 1000;
-				console.log("Execution time " + time + " seconds");
-			}
 
 			// return the results
 			return dataset;

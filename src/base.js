@@ -31,7 +31,7 @@
 				throw "Target " + options.target.selector + " not found";
 
 			// execute the query
-			var dataset = $.fn.thelittleboxoffice.query(options.query, true, options);
+			var dataset = $.fn.thelittleboxoffice.query(options.query, true);
 			
 			// build the theme and render
 			var theme_function = $.fn.thelittleboxoffice.getThemeFunctionName(options.theme);
